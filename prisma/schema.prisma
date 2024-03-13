@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  avatar    String?
+  firstName String
+  lastName  String
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  novels    Novel[]
+}
+
+model Genre {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  novels         Novel[]  @relation("GenreNovels")
+  subGenreNovels Novel[]  @relation("SubGenreNovels")
+  coverImage     String?
+}
+
+model Novel {
+  id          String    @id @default(uuid())
+  title       String    @unique
+  description String
+  author      User      @relation(fields: [authorId], references: [id])
+  authorId    String
+  series      Series?   @relation(fields: [seriesId], references: [id])
+  seriesId    String?
+  genre       Genre     @relation("GenreNovels", fields: [genreId], references: [id])
+  genreId     String
+  subGenre    Genre     @relation("SubGenreNovels", fields: [subGenreId], references: [id])
+  subGenreId  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  chapters    Chapter[]
+  coverImage  String?
+}
+
+model Series {
+  id          String   @id @default(uuid())
+  title       String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  novels      Novel[]
+  coverImage  String?
+}
+
+model Chapter {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  novel     Novel    @relation(fields: [novelId], references: [id])
+  novelId   String
+  number    Int      @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  thumbnail String?
+}

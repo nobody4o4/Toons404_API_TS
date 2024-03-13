@@ -1,0 +1,17 @@
+import { Router } from "express";
+
+
+import { adminMiddleware, authMiddleware } from "../middleware/auth.middleware";
+import { createSeries, deleteSeriesById, getAllSeries, getSeriesById, updateSeriesById } from "../controller/series.controller";
+
+
+const seriesRouter: Router = Router();
+
+seriesRouter.post("/add", authMiddleware, adminMiddleware, createSeries);
+seriesRouter.patch("/update/:id", authMiddleware, adminMiddleware, updateSeriesById);
+seriesRouter.delete("/delete/:id", authMiddleware, adminMiddleware, deleteSeriesById);
+seriesRouter.get("/all", getAllSeries);
+seriesRouter.get("/:id", getSeriesById);
+
+
+export default seriesRouter;
