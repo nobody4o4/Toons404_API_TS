@@ -15,6 +15,17 @@ enum Role {
   ADMIN
 }
 
+enum Status {
+  ONGOING
+  COMPLETED
+  HIATUS
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
 model User {
   id        String   @id @default(uuid())
   avatar    String?
@@ -27,6 +38,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   novels    Novel[]
+  Series    Series[]
 }
 
 model Genre {
@@ -41,19 +53,22 @@ model Genre {
 }
 
 model Novel {
-  id          String    @id @default(uuid())
-  title       String    @unique
+  id          String     @id @default(uuid())
+  title       String     @unique
   description String
-  author      User      @relation(fields: [authorId], references: [id])
+  likes       Int        @default(0)
+  author      User       @relation(fields: [authorId], references: [id])
   authorId    String
-  series      Series?   @relation(fields: [seriesId], references: [id])
+  series      Series?    @relation(fields: [seriesId], references: [id])
   seriesId    String?
-  genre       Genre     @relation("GenreNovels", fields: [genreId], references: [id])
+  genre       Genre      @relation("GenreNovels", fields: [genreId], references: [id])
   genreId     String
-  subGenre    Genre     @relation("SubGenreNovels", fields: [subGenreId], references: [id])
+  subGenre    Genre      @relation("SubGenreNovels", fields: [subGenreId], references: [id])
   subGenreId  String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  status      Status     @default(ONGOING)
+  Visibility  Visibility @default(PUBLIC)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   chapters    Chapter[]
   coverImage  String?
 }
@@ -64,6 +79,8 @@ model Series {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
   novels      Novel[]
   coverImage  String?
 }
@@ -72,6 +89,8 @@ model Chapter {
   id        String   @id @default(uuid())
   title     String
   content   String
+  likes     Int      @default(0)
+  views     Int      @default(0)
   novel     Novel    @relation(fields: [novelId], references: [id])
   novelId   String
   number    Int      @default(autoincrement())

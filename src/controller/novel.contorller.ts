@@ -50,6 +50,7 @@ export const novelCard = async (req: Request, res: Response): Promise<void> => {
         id:true,
         title:true,
         coverImage:true,
+        likes:true,
         genre:{
           select:{
             name:true,
@@ -88,6 +89,8 @@ export const fullnovelDetailById = async (req: Request, res: Response): Promise<
         id:true,
         title:true,
         coverImage:true,
+        likes:true,
+        createdAt:true,
         genre:{
           select:{
             name:true,
@@ -101,6 +104,8 @@ export const fullnovelDetailById = async (req: Request, res: Response): Promise<
         series:{
           select:{
             title:true,
+            coverImage:true,
+            description:true,
           }
         },
         description:true,
@@ -132,6 +137,62 @@ export const fullnovelDetailById = async (req: Request, res: Response): Promise<
   
 }
 
+export const fullnovelDetail = async (req: Request, res: Response): Promise<void> => {
+  try{
+
+    let novel = await prisma.novel.findMany({
+      where:{
+        id:req.params.id
+      },
+      select:{
+        id:true,
+        title:true,
+        coverImage:true,
+        description:true,
+        createdAt:true,
+        updatedAt:true,
+        likes:true,
+
+        genre:{
+          select:{
+            name:true,
+          }
+        },
+        subGenre:{
+          select:{
+            name:true,
+          }
+        },
+        series:{
+          select:{
+            title:true,
+          }
+        },
+        author:{
+          select:{
+            username:true,
+          }
+        },
+        chapters:{
+          select:{
+            id:true
+          }
+        }
+        
+      }
+    })
+    
+
+    console.log(novel,"novel page details")
+    res.status(200).json(novel)
+    console.log(novelCard,"novel page details")
+  }
+ catch (error) {
+  console.error('Error fetching all novels cards:', error);
+  res.status(500).json({ error: 'Internal server error' });
+}
+  
+}
 // Controller function to get a single novel by ID
 export const getNovelById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;

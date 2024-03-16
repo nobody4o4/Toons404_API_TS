@@ -1,0 +1,14 @@
+-- CreateEnum
+CREATE TYPE "Status" AS ENUM ('ONGOING', 'COMPLETED', 'HIATUS');
+
+-- CreateEnum
+CREATE TYPE "Visibility" AS ENUM ('PUBLIC', 'PRIVATE');
+
+-- AlterTable
+ALTER TABLE "Chapter" ADD COLUMN     "likes" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "views" INTEGER NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "Novel" ADD COLUMN     "Visibility" "Visibility" NOT NULL DEFAULT 'PUBLIC',
+ADD COLUMN     "likes" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "status" "Status" NOT NULL DEFAULT 'ONGOING';

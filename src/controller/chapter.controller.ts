@@ -58,11 +58,22 @@ console.log(number,novelId,"num, novelId");
       where: {
         number: number,
         AND:[
-         
           {
             novelId: novelId
           }
         ]
+      },
+      include:{
+        novel:{
+          select:{
+            title:true,
+            author:{
+              select:{
+                username:true
+              }
+            }
+          }
+        },
       },
     });
 
@@ -100,6 +111,24 @@ export const getChapterById = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+// Controller function to get the count of chapters of a novel
+export const getChapterCountByNovelId = async (req: Request, res: Response, novelId : string): Promise<void> => {
+
+  try {
+    const chapterCount = await prisma.chapter.count({
+      where: {
+        novelId,
+      },
+    });
+
+    res.status(200).json({ count: chapterCount });
+  } catch (error) {
+    console.error('Error fetching chapter count:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 // Controller function to update a chapter by ID
 export const updateChapterById = async (req: Request, res: Response): Promise<void> => {

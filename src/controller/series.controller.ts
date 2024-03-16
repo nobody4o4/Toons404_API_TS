@@ -5,14 +5,27 @@ const prisma = new PrismaClient();
 
 // Controller function to create a new series
 export const createSeries = async (req: Request, res: Response): Promise<void> => {
+  const coverImage = req.upload_urls?.Single_file;
   const { title, description } = req.body;
+  console.log(title, 'title.be');
 
   try {
+    const existingGenre = await prisma.series.findFirst({
+      where: {
+        title: title,
+      },
+    });
+    // If the genre already exists, return an error
+    if (existingGenre) {
+      res.status(400).json({ error: 'Series already exists' });
+      return;
+    }
     const newSeries = await prisma.series.create({
       data: {
-        title,
-        description,
-        
+        title: title,
+        description: description,
+        coverImage:coverImage,
+        authorId: req.user.id,
       },
     });
 
@@ -29,6 +42,7 @@ export const getAllSeries = async (req: Request, res: Response): Promise<void> =
     const allSeries = await prisma.series.findMany();
 
     res.status(200).json(allSeries);
+    console.log(allSeries,"dinesh");
   } catch (error) {
     console.error('Error fetching all series:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -44,6 +58,13 @@ export const getSeriesById = async (req: Request, res: Response): Promise<void> 
       where: {
         id: id,
       },
+      include:{
+        author:{
+          select:{
+            username:true
+          }
+        }
+      }
     });
 
     if (!series) {
