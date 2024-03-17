@@ -2,7 +2,7 @@ import { Router } from "express";
 
 
 import { adminMiddleware, authMiddleware } from "../middleware/auth.middleware";
-import { createSeries, deleteSeriesById, getAllSeries, getSeriesById, updateSeriesById } from "../controller/series.controller";
+import { createSeries, deleteSeriesById, getAllSeries, getSeriesById, getSeriesName, updateSeriesById } from "../controller/series.controller";
 import uploadFile from "../middleware/uploadfile.middleware";
 
 
@@ -13,6 +13,7 @@ seriesRouter.post("/add",uploadFile(folder), authMiddleware, adminMiddleware, cr
 seriesRouter.patch("/update/:id", authMiddleware, adminMiddleware, updateSeriesById);
 seriesRouter.delete("/delete/:id", authMiddleware, adminMiddleware, deleteSeriesById);
 seriesRouter.get("/all", getAllSeries);
+seriesRouter.get("/select", getSeriesName);
 seriesRouter.get("/:id", getSeriesById);
 
 

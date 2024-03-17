@@ -3,9 +3,16 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+
+
 // Controller function to create a new chapter
 export const createChapter = async (req: Request, res: Response): Promise<void> => {
-  const { title, content, novelId, number } = req.body;
+  const image = req.upload_urls?.Single_file;
+  const { title, content} = req.body;
+  const { novelId } = req.params;
+  console.log(title, content, novelId, 'chapter...');
+
+
 
   try {
     const newChapter = await prisma.chapter.create({
@@ -13,7 +20,7 @@ export const createChapter = async (req: Request, res: Response): Promise<void> 
         title,
         content,
         novelId,
-        number,
+        thumbnail: image,
       },
     });
     res.status(201).json(newChapter);

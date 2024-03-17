@@ -5,24 +5,32 @@ const prisma = new PrismaClient();
 
 // Controller function to create a new novel
 export const createNovel = async (req: Request, res: Response): Promise<void> => {
+  const image = req.upload_urls?.Single_file;
   const { title, description, seriesId, genreId, subGenreId } = req.body;
-
+  console.log(title, description, seriesId, genreId, subGenreId , 'novel...');
+  
   try {
-    console.log(req.user.id);
-    const image = req.upload_urls?.Single_file;
+    const existingNovel = await prisma.novel.findFirst({
+      where: {
+        title: title,
+      },
+    });
+    // If the novel already exists, return an error
+    if (existingNovel) {
+      res.status(400).json({ error: 'Novel already exists' });
+      return;
+    }
     const newNovel = await prisma.novel.create({
       data: {
-        title,
-        description,
+        title: title,
+        description: description,
         authorId: req.user.id,
-        seriesId,
-        genreId,
-        subGenreId,
+        seriesId : "705cd3a2-a3ce-49bd-a001-f01e0c063317",
+        genreId :"e0075208-70f4-4191-b632-c4df3d240151",
+        subGenreId : "f02ca7bf-7a8f-4457-8817-5c2d1e52bdfa",
         coverImage: image,
       },
-
     });
-
 
     res.status(201).json(newNovel);
   } catch (error) {
@@ -93,16 +101,19 @@ export const fullnovelDetailById = async (req: Request, res: Response): Promise<
         createdAt:true,
         genre:{
           select:{
+            id:true,
             name:true,
           }
         },
         subGenre:{
           select:{
+            id:true,
             name:true,
           }
         },
         series:{
           select:{
+            id:true,
             title:true,
             coverImage:true,
             description:true,
@@ -155,16 +166,19 @@ export const fullnovelDetail = async (req: Request, res: Response): Promise<void
 
         genre:{
           select:{
+            id:true,
             name:true,
           }
         },
         subGenre:{
           select:{
+            id:true,
             name:true,
           }
         },
         series:{
           select:{
+            id:true,
             title:true,
           }
         },
@@ -177,8 +191,13 @@ export const fullnovelDetail = async (req: Request, res: Response): Promise<void
           select:{
             id:true
           }
-        }
-        
+        },
+_count:{
+  select:{
+    chapters:true
+  }
+}
+   
       }
     })
     
@@ -316,6 +335,7 @@ export const getNovelsBySeries = async (req: Request, res: Response): Promise<vo
 
 // Controller function to update a novel by ID
 export const updateNovelById = async (req: Request, res: Response): Promise<void> => {
+  const image = req.upload_urls?.Single_file;
   const { id } = req.params;
   const { title, description, authorId, seriesId, genreId, subGenreId } = req.body;
 
@@ -331,6 +351,7 @@ export const updateNovelById = async (req: Request, res: Response): Promise<void
         seriesId,
         genreId,
         subGenreId,
+        coverImage:image
       },
     });
 

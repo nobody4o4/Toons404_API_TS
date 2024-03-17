@@ -100,6 +100,21 @@ export const getAllGenres = async (req: Request, res: Response) => {
     }
 }
 
+//get genre name and id for dropdown select in novel admin form
+export const getGenreName = async (req: Request, res: Response) => {
+  try {
+    const genres = await prisma.genre.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    res.json(genres);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 export const getGenreById = async (req: Request, res: Response) => {
     try {
       const existingGenre = await prisma.genre.findFirst({
@@ -123,4 +138,3 @@ export const getGenreById = async (req: Request, res: Response) => {
     }
 }
 
-export default {addGenre, updateGenre, deleteGenre, getAllGenres, getGenreById}
