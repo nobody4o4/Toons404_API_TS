@@ -77,11 +77,34 @@ export const me = async (req: Request, res: Response) => {
         if (!req.user ) {
             return res.status(400).json({ error: "User not found" });
         }
-        // Now TypeScript recognizes the user property
         res.json(req.user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+};
+
+export const getRoleById = async (req: Request, res: Response) => {
+  try {
+    const data = req.user;
+    console.log(data,"samir")
+    const id  = req.user.id;
+    const user = await prisma.user.findUnique({ where: { id: (id) }, select:{
+      role:true
+    } });
+
+    // if(user.role === "ADMIN"){
+    //   res.json({isAdmin:true});
+    // }else{
+    //   res.json({isAdmin:false});
+    // }
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+    console.log(user.role,"mrbes=asttt")
+    res.json(user.role);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 

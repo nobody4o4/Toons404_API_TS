@@ -76,9 +76,7 @@ export const novelCard = async (req: Request, res: Response): Promise<void> => {
         }
       }
     })
-    console.log(novelCard,"11")
     res.status(200).json(novelCard)
-    console.log(novelCard,"22")
   }
  catch (error) {
   console.error('Error fetching all novels cards:', error);
@@ -123,6 +121,7 @@ export const fullnovelDetailById = async (req: Request, res: Response): Promise<
         author:{
           select:{
             username:true,
+            avatar: true
           }
         },
         chapters:{
@@ -180,11 +179,14 @@ export const fullnovelDetail = async (req: Request, res: Response): Promise<void
           select:{
             id:true,
             title:true,
+            coverImage:true,
+            description:true,
           }
         },
         author:{
           select:{
             username:true,
+            avatar: true
           }
         },
         chapters:{

@@ -10,13 +10,13 @@ import { JWT_SECRET } from "../secrets";
         if (!token) {
         throw new Error("Token is required");
         }
-        console.log(token);
+        console.log(token,"wowtoken");
         const [bearer, t] = token.split(" ");
         const payload = jwt.verify(t,JWT_SECRET) as any;
-        console.log(payload);
+        console.log(payload,"this is samir");
 
          const user = await prisma.user.findFirst({where:{id : payload.userId}}); 
-         console.log(user);
+         console.log(user,"this is colin");
 
         if (!user) {
             throw new Error("User not found");
