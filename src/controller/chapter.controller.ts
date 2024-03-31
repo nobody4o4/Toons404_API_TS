@@ -134,8 +134,17 @@ export const getChapterCountByNovelId = async (req: Request, res: Response, nove
 
 // Controller function to update a chapter by ID
 export const updateChapterById = async (req: Request, res: Response): Promise<void> => {
+  const image = req.upload_urls?.Single_file;
   const { id } = req.params;
-  const { title, content, number } = req.body;
+  const { title, content } = req.body;
+  console.log(req.body, 'update chapter... REQ BODYYYYYY')
+  console.log(title, content, image, 'update chapter... DATATATATATTATA')
+
+  // Check that all fields are present
+  if (!title || !content) {
+    res.status(400).json({ error: 'Please provide all fields' });
+    return;
+  }
 
   try {
     const updatedChapter = await prisma.chapter.update({
@@ -145,7 +154,7 @@ export const updateChapterById = async (req: Request, res: Response): Promise<vo
       data: {
         title,
         content,
-        number,
+        thumbnail:image
       },
     });
 

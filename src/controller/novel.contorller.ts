@@ -6,8 +6,9 @@ const prisma = new PrismaClient();
 // Controller function to create a new novel
 export const createNovel = async (req: Request, res: Response): Promise<void> => {
   const image = req.upload_urls?.Single_file;
-  const { title, description, seriesId, genreId, subGenreId } = req.body;
-  console.log(title, description, seriesId, genreId, subGenreId , 'novel...');
+  console.log(req.body, 'novejhdvhjbdsjcbsdjhbcjdsbjhcb')
+  const { title, description, series, genre, subGenre } = req.body;
+  console.log(title, description, series, genre, subGenre , 'novel...');
   
   try {
     const existingNovel = await prisma.novel.findFirst({
@@ -25,9 +26,9 @@ export const createNovel = async (req: Request, res: Response): Promise<void> =>
         title: title,
         description: description,
         authorId: req.user.id,
-        seriesId : "705cd3a2-a3ce-49bd-a001-f01e0c063317",
-        genreId :"e0075208-70f4-4191-b632-c4df3d240151",
-        subGenreId : "f02ca7bf-7a8f-4457-8817-5c2d1e52bdfa",
+        seriesId : series,
+        genreId : genre,
+        subGenreId : subGenre,
         coverImage: image,
       },
     });

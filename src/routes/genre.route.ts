@@ -2,7 +2,6 @@ import { Router } from "express";
 
 import {addGenre, deleteGenre, getAllGenres, getGenreById, getGenreName, updateGenre} from "../controller/genre.controller";
 import { adminMiddleware, authMiddleware } from "../middleware/auth.middleware";
-import { me } from "../controller/user.controller";
 import uploadFile from "../middleware/uploadfile.middleware";
 
 const genreRouter: Router = Router();

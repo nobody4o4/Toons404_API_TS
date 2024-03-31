@@ -15,6 +15,7 @@ chapterRouter.get("/:novelId/:currentChapterNumber/next", getNextChapter);
 chapterRouter.get("/:novelId/:currentChapterNumber/prev", getNextChapter);
 chapterRouter.get("/novel/:novelId", getAllChaptersByNovelId);
 chapterRouter.get("/:novelId/:number", getChapterByNumber);
+chapterRouter.get("/:id", getChapterById);
 
 
 export default chapterRouter;

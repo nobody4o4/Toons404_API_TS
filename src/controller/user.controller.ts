@@ -40,6 +40,94 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
+export const getUserProfileByUsername = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.params;
+    const user = await prisma.user.findUnique({ where: { username },
+      select:{
+        id:true,
+        firstName:true,
+        lastName:true,
+        username:true,
+        avatar:true,
+      }
+     });
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export const getCurrentUserProfile = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.user;
+    const user = await prisma.user.findUnique({ where: { username },
+      select:{
+        id:true,
+        firstName:true,
+        lastName:true,
+        username:true,
+        email:true,
+        avatar:true,
+        bio:true,
+        novels:{
+          select:{
+            id:true,
+            title:true,
+            coverImage:true,
+            genre:{
+              select:{
+                name:true
+              }
+            },
+            subGenre:{
+              select:{
+                name:true
+              }
+            },
+            series:{
+              select:{
+                title:true
+              }
+            }
+          }
+        
+        },
+      }
+     });
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// update current user profile
+// export const updateCurrentUserProfile = async (req: Request, res: Response) => {
+//   try {
+//     const { username } = req.user;
+//     const image = req.upload_urls?.Single_file;
+//     const { firstName, lastName, email, bio } = req.body;
+//     const user = await prisma.user.update({
+//       where: { username },
+//       data: {
+//         avatar: image,
+//         firstName,
+//         lastName,
+//         bio,
+//       },
+//     });
+//     res.json(user);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// }
+
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -123,16 +211,17 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const updateUserById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { firstName, lastName, username, email, password } = req.body;
+    const image = req.upload_urls?.Single_file;
+    const { id } = req.user;
+    const { firstName, lastName, username, bio} = req.body;
     const user = await prisma.user.update({
       where: { id: (id) },
       data: {
+        avatar:image,
         firstName,
         lastName,
         username,
-        email,
-        password,
+        bio,
       },
     });
     res.json(user);

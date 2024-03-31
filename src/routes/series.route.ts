@@ -10,7 +10,7 @@ const seriesRouter: Router = Router();
 const folder = "series";
 
 seriesRouter.post("/add",uploadFile(folder), authMiddleware, adminMiddleware, createSeries);
-seriesRouter.patch("/update/:id", authMiddleware, adminMiddleware, updateSeriesById);
+seriesRouter.patch("/update/:id",uploadFile(folder), authMiddleware, adminMiddleware, updateSeriesById);
 seriesRouter.delete("/delete/:id", authMiddleware, adminMiddleware, deleteSeriesById);
 seriesRouter.get("/all", getAllSeries);
 seriesRouter.get("/select", getSeriesName);

@@ -97,6 +97,7 @@ export const getSeriesById = async (req: Request, res: Response): Promise<void> 
 export const updateSeriesById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { title, description } = req.body;
+  const coverImage = req.upload_urls?.Single_file;
 
   try {
     const updatedSeries = await prisma.series.update({
@@ -106,6 +107,7 @@ export const updateSeriesById = async (req: Request, res: Response): Promise<voi
       data: {
         title,
         description,
+        coverImage : coverImage,
       },
     });
 
