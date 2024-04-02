@@ -5,6 +5,7 @@ import seriesRouter from './series.route';
 import novelRouter from './novel.route';
 import chapterRouter from './chapter.route';
 import dashboardRouter from './dashboard.route';
+import subscriptionRouter from './subscription.route';
 
 const rootRouter = Router();
 
@@ -14,6 +15,8 @@ rootRouter.use('/series',seriesRouter);
 rootRouter.use('/novel',novelRouter);
 rootRouter.use('/chapter',chapterRouter);
 rootRouter.use('/dashboard',dashboardRouter);
+rootRouter.use('/subscription',subscriptionRouter);
+
 
 
 export default rootRouter;

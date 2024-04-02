@@ -39,7 +39,15 @@ export const createSeries = async (req: Request, res: Response): Promise<void> =
 // Controller function to get all series
 export const getAllSeries = async (req: Request, res: Response): Promise<void> => {
   try {
-    const allSeries = await prisma.series.findMany();
+    const allSeries = await prisma.series.findMany({
+      include:{
+        author:{
+          select:{
+            username:true
+          }
+        }
+      }
+    });
 
     res.status(200).json(allSeries);
     console.log(allSeries,"dinesh");

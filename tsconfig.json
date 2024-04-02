@@ -8,7 +8,12 @@
     "outDir": "dist",
     "typeRoots": ["index.d.ts"]
   },
-  "include": ["src/**/*.ts", "index.d.ts", "src/hooks/ScrollToTop.tsx"],
+  "include": [
+    "src/**/*.ts",
+    "index.d.ts",
+    "src/hooks/ScrollToTop.tsx",
+    "secrets.ts"
+  ],
   "lib": ["es2015"],
   "files": ["index.d.ts"]
 }

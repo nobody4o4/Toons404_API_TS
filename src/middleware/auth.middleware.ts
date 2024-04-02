@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "..";
-import { JWT_SECRET } from "../secrets";
+import { JWT_SECRET } from "../../secrets";
 
 
  const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {

@@ -68,6 +68,32 @@ export const updateGenre =async (req: Request, res: Response) => {
     }
 }
 
+// Controller function to update a series by ID
+export const updateGenreById = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+  const coverImage = req.upload_urls?.Single_file;
+
+  try {
+    const updatedGenre= await prisma.genre.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name,
+        description,
+        coverImage : coverImage,
+      },
+    });
+
+    res.status(200).json(updatedGenre);
+  } catch (error) {
+    console.error('Error updating series by ID:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 export const deleteGenre = async (req: Request, res: Response) => {
     try {
       const existingGenre = await prisma.genre.findFirst({

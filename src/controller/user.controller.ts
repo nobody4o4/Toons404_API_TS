@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../index";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../secrets";
+import { JWT_SECRET } from "../../secrets";
 import bcrypt from 'bcrypt';
 import { BadRequestException } from "../errors/badRequest";
 import { ErrorCodes } from "../errors/index.error";
