@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import axios, { AxiosResponse } from 'axios';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '..';
 
-const prisma = new PrismaClient();
 
 interface KhaltiPaymentResponse {
   pidx: string;
@@ -17,7 +16,7 @@ interface KhaltiLookupResponse {
   status: string;
   transaction_id: string | null;
   fee: number;
-  refunded: boolean;
+  refunded: boolean; 
 }
 
 const KHALTI_S_KEY = process.env.KHALTI_SECRET_KEY || '';
@@ -105,13 +104,34 @@ export const updateSubscriptionAfterPayment = async (req: Request, res: Response
       data: { status: 'ACTIVE' },
     });
 
-    res.status(201).json({ message: 'Subscription updated successfully' , status: 'success'});
+    res.status(201).json('success');
 
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message || 'Error Processing Khalti' });
   }
 };
+
+//check id user has active subscription
+export const getSubscriptionByUserId =  async  (req: Request, res:Response ) => {
+
+  const userId = req.user.id
+
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      userId: userId,
+      status: 'ACTIVE',
+    },
+
+  });
+
+  if(!subscription){
+    return res.status(400).json({message: 'No active subscription found'});
+  }
+
+  res.status(200).json({subscription,message:"Active"});
+
+}
 
 const calculateEndDate = (billingInterval: 'MONTH' | 'YEAR'): Date => {
   const today = new Date();

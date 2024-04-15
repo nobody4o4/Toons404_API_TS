@@ -1,15 +1,13 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '..';
 
 // Controller function to create a new novel
 export const createNovel = async (req: Request, res: Response): Promise<void> => {
   const image = req.upload_urls?.Single_file;
   console.log(req.body, 'novejhdvhjbdsjcbsdjhbcjdsbjhcb')
   const { title, description, series, genre, subGenre } = req.body;
-  console.log(title, description, series, genre, subGenre , 'novel...');
-  
+  console.log(title, description, series, genre, subGenre, 'novel...');
+
   try {
     const existingNovel = await prisma.novel.findFirst({
       where: {
@@ -26,9 +24,9 @@ export const createNovel = async (req: Request, res: Response): Promise<void> =>
         title: title,
         description: description,
         authorId: req.user.id,
-        seriesId : series,
-        genreId : genre,
-        subGenreId : subGenre,
+        seriesId: series,
+        genreId: genre,
+        subGenreId: subGenre,
         coverImage: image,
       },
     });
@@ -53,167 +51,208 @@ export const getAllNovels = async (req: Request, res: Response): Promise<void> =
 };
 
 export const novelCard = async (req: Request, res: Response): Promise<void> => {
-  try{
+  const userId = req.user.id;
+  try {
     const novelCard = await prisma.novel.findMany({
-      select:{
-        id:true,
-        title:true,
-        coverImage:true,
-        likes:true,
-        genre:{
-          select:{
-            name:true,
+      select: {
+        id: true,
+        title: true,
+        coverImage: true,
+        ...(userId && {
+          Likes: {
+            where:{
+            userId: userId
+            }
+            ,select:{
+              userId: true
+            }
+          },
+        }),
+        genre: {
+          select: {
+            name: true,
           }
         },
-        subGenre:{
-          select:{
-            name:true,
+        subGenre: {
+          select: {
+            name: true,
           }
         },
-        series:{
-          select:{
-            title:true,
+        series: {
+          select: {
+            title: true,
+          }
+        },
+        _count: {
+          select: {
+            Likes: true,
           }
         }
       }
     })
     res.status(200).json(novelCard)
   }
- catch (error) {
-  console.error('Error fetching all novels cards:', error);
-  res.status(500).json({ error: 'Internal server error' });
-}
-  
+  catch (error) {
+    console.error('Error fetching all novels cards:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+
 }
 
 export const fullnovelDetailById = async (req: Request, res: Response): Promise<void> => {
-  try{
+  const userId = req.user.id;
+  try {
     const novelCard = await prisma.novel.findUnique({
-      where:{
-        id:req.params.id
+      where: {
+        id: req.params.id
       },
-      select:{
-        id:true,
-        title:true,
-        coverImage:true,
-        likes:true,
-        createdAt:true,
-        genre:{
-          select:{
-            id:true,
-            name:true,
+      select: {
+        id: true,
+        title: true,
+        coverImage: true,
+        likes: true,
+        createdAt: true,
+        genre: {
+          select: {
+            id: true,
+            name: true,
           }
         },
-        subGenre:{
-          select:{
-            id:true,
-            name:true,
+        subGenre: {
+          select: {
+            id: true,
+            name: true,
           }
         },
-        series:{
-          select:{
-            id:true,
-            title:true,
-            coverImage:true,
-            description:true,
+        series: {
+          select: {
+            id: true,
+            title: true,
+            coverImage: true,
+            description: true,
           }
         },
-        description:true,
-        author:{
-          select:{
-            username:true,
+        description: true,
+        author: {
+          select: {
+            username: true,
             avatar: true
           }
         },
-        chapters:{
-          select:{
-            id:true,
-            thumbnail:true,
-            title:true,
-            number:true,
-            createdAt:true,
+        chapters: {
+          select: {
+            id: true,
+            thumbnail: true,
+            title: true,
+            number: true,
+            createdAt: true,
+          }
+        },
+        ...(userId && {
+          Likes: {
+            where:{
+            userId: userId
+            }
+            ,select:{
+              userId: true
+            }
+          },
+        }),
+        _count: {
+          select: {
+            Likes: true,
           }
         }
-        
       }
     })
-    console.log(novelCard,"novel page details")
+
+    console.log(novelCard, "novel page details")
     res.status(200).json(novelCard)
-    console.log(novelCard,"novel page details")
+    console.log(novelCard, "novel page details")
   }
- catch (error) {
-  console.error('Error fetching all novels cards:', error);
-  res.status(500).json({ error: 'Internal server error' });
-}
-  
+  catch (error) {
+    console.error('Error fetching all novels cards:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+
 }
 
 export const fullnovelDetail = async (req: Request, res: Response): Promise<void> => {
-  try{
+  const userId = req.user.id;
+  try {
 
     let novel = await prisma.novel.findMany({
-      where:{
-        id:req.params.id
+      where: {
+        id: req.params.id
       },
-      select:{
-        id:true,
-        title:true,
-        coverImage:true,
-        description:true,
-        createdAt:true,
-        updatedAt:true,
-        likes:true,
-
-        genre:{
-          select:{
-            id:true,
-            name:true,
+      select: {
+        id: true,
+        title: true,
+        coverImage: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        likes: true,
+        ...(userId && {
+          Likes: {
+            where:{
+            userId: userId
+            }
+            ,select:{
+              userId: true
+            }
+          },
+        }),
+        genre: {
+          select: {
+            id: true,
+            name: true,
           }
         },
-        subGenre:{
-          select:{
-            id:true,
-            name:true,
+        subGenre: {
+          select: {
+            id: true,
+            name: true,
           }
         },
-        series:{
-          select:{
-            id:true,
-            title:true,
-            coverImage:true,
-            description:true,
+        series: {
+          select: {
+            id: true,
+            title: true,
+            coverImage: true,
+            description: true,
           }
         },
-        author:{
-          select:{
-            username:true,
+        author: {
+          select: {
+            username: true,
             avatar: true
           }
         },
-        chapters:{
-          select:{
-            id:true
+        chapters: {
+          select: {
+            id: true
           }
         },
-_count:{
-  select:{
-    chapters:true
-  }
-}
-   
+        _count: {
+          select: {
+            chapters: true
+          }
+        }
+
       }
     })
-    
 
-    console.log(novel,"novel page details")
+
+    console.log(novel, "novel page details")
     res.status(200).json(novel)
-    console.log(novelCard,"novel page details")
+    console.log(novelCard, "novel page details")
   }
- catch (error) {
-  console.error('Error fetching all novels cards:', error);
-  res.status(500).json({ error: 'Internal server error' });
-}
-  
+  catch (error) {
+    console.error('Error fetching all novels cards:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+
 }
 // Controller function to get a single novel by ID
 export const getNovelById = async (req: Request, res: Response): Promise<void> => {
@@ -336,6 +375,99 @@ export const getNovelsBySeries = async (req: Request, res: Response): Promise<vo
 };
 
 
+// Controller function to get novels by Author
+export const getNovelsByAuthor = async (req: Request, res: Response): Promise<void> => {
+  const { authorId } = req.params;
+
+  try {
+    const novels = await prisma.novel.findMany({
+      where: {
+        authorId: authorId,
+      },
+    });
+
+    if (!novels) {
+      res.status(404).json({ error: 'Novels not found' });
+      return;
+    }
+
+    res.status(200).json(novels);
+  } catch (error) {
+    console.error('Error fetching novels by Author:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+// Controller function to get novel liked by user
+export const getNovelLikedByUser = async (req: Request, res: Response): Promise<void> => {
+  const  userId  = req.user.id;
+
+  try {
+    const novels = await prisma.novel.findMany({
+      where: {
+        Likes: {
+          some: {
+            userId: userId,
+          },
+
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        coverImage: true,
+        ...(
+          userId &&{
+            Likes: {
+              where:{
+              userId: userId
+              }
+              ,select:{
+                userId: true
+              }
+            },
+          }
+        ),
+        _count: {
+            select: {
+              Likes: true,
+            }
+          },
+        genre: {
+          select: {
+            name: true,
+          }
+        },
+        subGenre: {
+          select: {
+            name: true,
+          }
+        },
+        series: {
+          select: {
+            title: true,
+          }
+        }
+        
+      }
+    });
+    console.log(novels, "novels liked by user")
+
+    if (!novels) {
+      res.status(404).json({ error: 'Novels not found' });
+      return;
+    }
+
+    res.status(200).json(novels);
+  } catch (error) {
+    console.error('Error fetching novels liked by user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
 // Controller function to update a novel by ID
 export const updateNovelById = async (req: Request, res: Response): Promise<void> => {
   const image = req.upload_urls?.Single_file;
@@ -354,7 +486,7 @@ export const updateNovelById = async (req: Request, res: Response): Promise<void
         seriesId,
         genreId,
         subGenreId,
-        coverImage:image
+        coverImage: image
       },
     });
 

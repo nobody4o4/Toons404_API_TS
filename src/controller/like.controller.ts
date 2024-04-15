@@ -1,0 +1,170 @@
+//controllers for likes on novels,chapers and comments
+import { Request, Response } from "express";
+import { prisma } from "..";
+
+export const addLike = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { type, likedItemId } = req.body;
+    const userId = req.user.id;
+
+    // Validate the request
+    if (!['novel', 'chapter', 'comment','series'].includes(type)) {
+      res.status(400).json({ error: 'Invalid request' });
+      return;
+    }
+    if (!userId || !type || !likedItemId) {
+      res.status(400).json({ error: 'Invalid request' });
+      return;
+    }
+    // Check if the user has already liked the item
+    const existingLike = await prisma.likes.findFirst({
+      where: {
+        userId,
+        ...(type === 'novel' && { novelId: likedItemId }),
+        ...(type === 'chapter' && { chapterId: likedItemId }),
+        ...(type === 'comment' && { commentId: likedItemId }),
+        ...(type === 'series' && { seriesId: likedItemId })
+      },
+    });
+
+    if (existingLike) {
+      res.status(400).json({ error: 'You have already liked this item' });
+      return;
+    }
+
+    // Create the like with the user and related associations
+    const like = await prisma.likes.create({
+      data: {
+        user: { connect: { id: userId } },
+        ...(type === 'novel' && { novel: { connect: { id: likedItemId } } }),
+        ...(type === 'chapter' && { chapter: { connect: { id: likedItemId } } }),
+        ...(type === 'comment' && { comment: { connect: { id: likedItemId } } }),
+        ...(type === 'series' && { series: { connect: { id: likedItemId } } }),
+      },
+    });
+
+    res.status(200).json(like);
+  } catch (error) {
+    console.error('Error adding like:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+//controller for removing likes from novels, chapters and comments
+export const removeLike = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const { type, likedItemId } = req.body;
+
+    // Validate the request
+    if (!['novel', 'chapter', 'comment', 'series'].includes(type)) {
+      res.status(400).json({ error: 'Invalid request' });
+      return;
+    }
+
+    if (!userId || !type || !likedItemId) {
+      res.status(400).json({ error: 'Invalid request' });
+      return;
+    }
+
+    // Remove the like
+    const result = await prisma.likes.deleteMany({
+      where: {
+        userId,
+        ...(type === 'novel' && { novelId: likedItemId }),
+        ...(type === 'chapter' && { chapterId: likedItemId }),
+        ...(type === 'comment' && { commentId: likedItemId }),
+        ...(type === 'series' && { seriesId: likedItemId }),
+
+      },
+    });
+
+    // Check if a like was removed
+    if (result.count > 0) {
+      res.status(200).json({ message: 'Like removed successfully' });
+    } else {
+      res.status(404).json({ error: 'Like not found' });
+    }
+  } catch (error) {
+    console.error('Error removing like:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+//controller for getting likes on novels
+export const getNovelLikes = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const novelLikes = await prisma.likes.findMany({
+      where: {
+        novelId: req.params.id
+      },
+    });
+    res.status(200).json(novelLikes);
+  } catch (error) {
+    console.error('Error fetching novel likes:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+//controller for getting likes on chapters
+export const getChapterLikes = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const chapterLikes = await prisma.likes.findMany({
+      where: {
+        chapterId: req.params.id
+      }
+    });
+    res.status(200).json(chapterLikes);
+  } catch (error) {
+    console.error('Error fetching chapter likes:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+//controller for getting likes on comments
+export const getCommentLikes = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const commentLikes = await prisma.likes.findMany({
+      where: {
+        commentId: req.params.id
+      }
+    });
+    res.status(200).json(commentLikes);
+  } catch (error) {
+    console.error('Error fetching comment likes:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+//controller for geting likes on comments, 
+//controller for removing likes from novels, chapters and comments
+export const getLike = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const { type, likedItemId } = req.body;
+    console.log(userId, type, likedItemId, "userId, type, likedItemId")
+    if (!['novel', 'chapter', 'comment', 'series'].includes(type)) {
+      res.status(400).json({ error: 'Invalid request' });
+      return
+    }
+    if (!userId || !type || !likedItemId) {
+      res.status(400).json({ error: 'Invalid request' });
+      return
+    }
+    const like = await prisma.likes.findMany({
+      where: {
+        userId: userId,
+        ...(type === 'novel' && { novelId: likedItemId }),
+        ...(type === 'chapter' && { chapterId: likedItemId }),
+        ...(type === 'comment' && { commentId: likedItemId }),
+        ...(type === 'series' && { seriesId: likedItemId }),
+      }
+    });
+    res.status(200).json(like);
+  } catch (error) {
+    console.error('Error removing like:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}

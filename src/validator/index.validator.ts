@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { ErrorCodes, HttpException } from "../errors/index.error";
-import { BadRequestException } from "../errors/badRequest";
+import { ErrorCodes, HttpException } from "../middleware/errors/index.error";
+import { BadRequestException } from "../middleware/errors/badRequest";
 
 export const validatorResult = (schema: any) => async (req: Request, res: Response, next: NextFunction) => {
   try {

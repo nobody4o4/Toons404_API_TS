@@ -21,32 +21,29 @@ enum Status {
   HIATUS
 }
 
-enum Visibility {
-  PUBLIC
-  PRIVATE
-}
-
 model User {
-  id            String         @id @default(uuid())
-  avatar        String?
-  firstName     String
-  lastName      String
-  bio           String?
-  username      String         @unique
-  email         String         @unique
-  password      String
-  // followers User[]  @relation("Followers", references: [id])
-  // following User[]  @relation("Following", references: [id])
-  role          Role           @default(USER)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  novels        Novel[]
-  Series        Series[]
-  subscriptions Subscription[]
-  // User   User?   @relation(fields: [userId], references: [id])
-  // userId String?
-  // User   User?   @relation(fields: [userId], references: [id])
-  // userId String?
+  id                 String             @id @default(uuid())
+  avatar             String?
+  firstName          String
+  lastName           String
+  bio                String?
+  username           String             @unique
+  email              String             @unique
+  password           String
+  role               Role               @default(USER)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  novels             Novel[]
+  Series             Series[]
+  subscriptions      Subscription[]
+  Likes              Likes[]
+  Comments           Comments[]
+  Posts              Post[]
+  PostComments       PostComment[]
+  PostLikes          PostLike[]
+  PostCommentReplies PostCommentReply[]
+  Followers          Follow[]           @relation("follower")
+  Followings         Follow[]           @relation("following")
 }
 
 model Genre {
@@ -61,24 +58,24 @@ model Genre {
 }
 
 model Novel {
-  id          String     @id @default(uuid())
-  title       String     @unique
+  id          String    @id @default(uuid())
+  title       String    @unique
   description String
-  likes       Int        @default(0)
-  author      User       @relation(fields: [authorId], references: [id])
+  likes       Int       @default(0)
+  author      User      @relation(fields: [authorId], references: [id])
   authorId    String
-  series      Series?    @relation(fields: [seriesId], references: [id])
+  series      Series?   @relation(fields: [seriesId], references: [id])
   seriesId    String?
-  genre       Genre      @relation("GenreNovels", fields: [genreId], references: [id])
+  genre       Genre     @relation("GenreNovels", fields: [genreId], references: [id])
   genreId     String
-  subGenre    Genre      @relation("SubGenreNovels", fields: [subGenreId], references: [id])
+  subGenre    Genre     @relation("SubGenreNovels", fields: [subGenreId], references: [id])
   subGenreId  String
-  status      Status     @default(ONGOING)
-  Visibility  Visibility @default(PUBLIC)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  status      Status    @default(ONGOING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   chapters    Chapter[]
-  coverImage  String?
+  coverImage  String
+  Likes       Likes[]
 }
 
 model Series {
@@ -90,21 +87,25 @@ model Series {
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
   novels      Novel[]
-  coverImage  String?
+  coverImage  String
+  forum       Forum?
+  Likes       Likes[]
 }
 
 model Chapter {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   title     String
   content   String
-  likes     Int      @default(0)
-  views     Int      @default(0)
-  novel     Novel    @relation(fields: [novelId], references: [id])
+  likes     Int        @default(0)
+  views     Int        @default(0)
+  novel     Novel      @relation(fields: [novelId], references: [id])
   novelId   String
-  number    Int      @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  thumbnail String?
+  number    Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  thumbnail String
+  Likes     Likes[]
+  Comments  Comments[]
 }
 
 model Plan {
@@ -128,6 +129,104 @@ model Subscription {
   startDate  DateTime
   endDate    DateTime
   canceledAt DateTime?
+}
+
+model Likes {
+  id            String       @id @default(uuid())
+  user          User         @relation(fields: [userId], references: [id])
+  userId        String
+  novel         Novel?       @relation(fields: [novelId], references: [id])
+  novelId       String?
+  chapter       Chapter?     @relation(fields: [chapterId], references: [id])
+  chapterId     String?
+  comment       Comments?    @relation(fields: [commentId], references: [id])
+  commentId     String?
+  series        Series?      @relation(fields: [seriesId], references: [id])
+  seriesId      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  PostComment   PostComment? @relation(fields: [postCommentId], references: [id])
+  postCommentId String?
+}
+
+model Comments {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  chapter   Chapter  @relation(fields: [chapterId], references: [id])
+  chapterId String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Likes     Likes[]
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  followerId  String
+  following   User     @relation("following", fields: [followingId], references: [id])
+  followingId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Forum {
+  id        String   @id @default(uuid())
+  title     String
+  posts     Post[]
+  series    Series   @relation(fields: [seriesId], references: [id])
+  seriesId  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id                 String             @id @default(uuid())
+  title              String
+  content            String
+  user               User               @relation(fields: [userId], references: [id])
+  userId             String
+  forum              Forum              @relation(fields: [forumId], references: [id])
+  forumId            String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  PostComments       PostComment[]
+  PostLikes          PostLike[]
+  PostCommentReplies PostCommentReply[]
+}
+
+model PostComment {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Likes     Likes[]
+}
+
+model PostLike {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PostCommentReply {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum BillingInterval {
