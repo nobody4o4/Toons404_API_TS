@@ -1,63 +1,66 @@
 import { Request, Response } from 'express';
 import { prisma } from '..';
 
-// Controller function to create a new novel
-export const createNovel = async (req: Request, res: Response): Promise<void> => {
+// Controller function to create a new book
+export const createBook = async (req: Request, res: Response): Promise<void> => {
   const image = req.upload_urls?.Single_file;
+  const userId = req?.user?.id;
   console.log(req.body, 'novejhdvhjbdsjcbsdjhbcjdsbjhcb')
-  const { title, description, series, genre, subGenre } = req.body;
-  console.log(title, description, series, genre, subGenre, 'novel...');
+  const { title, description, series, genre, subGenre, type } = req.body;
+  console.log(title, description, series, genre, subGenre, 'book...');
 
   try {
-    const existingNovel = await prisma.novel.findFirst({
+    const existingBook = await prisma.book.findFirst({
       where: {
         title: title,
       },
     });
-    // If the novel already exists, return an error
-    if (existingNovel) {
-      res.status(400).json({ error: 'Novel already exists' });
+    // If the book already exists, return an error
+    if (existingBook) {
+      res.status(400).json({ error: 'Book already exists' });
       return;
     }
-    const newNovel = await prisma.novel.create({
+    const newBook = await prisma.book.create({
       data: {
         title: title,
         description: description,
-        authorId: req.user.id,
+        authorId: userId,
         seriesId: series,
+        type:type,
         genreId: genre,
         subGenreId: subGenre,
         coverImage: image,
       },
     });
 
-    res.status(201).json(newNovel);
+    res.status(201).json(newBook);
   } catch (error) {
-    console.error('Error creating novel:', error);
+    console.error('Error creating book:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Controller function to get all novels
-export const getAllNovels = async (req: Request, res: Response): Promise<void> => {
+// Controller function to get all books
+export const getAllBooks = async (req: Request, res: Response): Promise<void> => {
   try {
-    const allNovels = await prisma.novel.findMany();
+    const allBooks = await prisma.book.findMany();
 
-    res.status(200).json(allNovels);
+    res.status(200).json(allBooks);
   } catch (error) {
-    console.error('Error fetching all novels:', error);
+    console.error('Error fetching all books:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-export const novelCard = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user.id;
+export const bookCard = async (req: Request, res: Response): Promise<void> => {
+  const userId = req?.user?.id;
   try {
-    const novelCard = await prisma.novel.findMany({
+    const bookCard = await prisma.book.findMany({
       select: {
         id: true,
         title: true,
         coverImage: true,
+        type: true,
         ...(userId && {
           Likes: {
             where:{
@@ -90,27 +93,29 @@ export const novelCard = async (req: Request, res: Response): Promise<void> => {
         }
       }
     })
-    res.status(200).json(novelCard)
+    res.status(200).json(bookCard)
   }
   catch (error) {
-    console.error('Error fetching all novels cards:', error);
+    console.error('Error fetching all books cards:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 
 }
 
-export const fullnovelDetailById = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user.id;
+export const fullbookDetailById = async (req: Request, res: Response): Promise<void> => {
+  const userId = req?.user?.id;
+  const bookId = req?.params?.id;
   try {
-    const novelCard = await prisma.novel.findUnique({
+    let bookCard = await prisma.book.findUnique({
       where: {
-        id: req.params.id
+        id: bookId
       },
       select: {
         id: true,
         title: true,
         coverImage: true,
         likes: true,
+        type: true,
         createdAt: true,
         genre: {
           select: {
@@ -139,6 +144,7 @@ export const fullnovelDetailById = async (req: Request, res: Response): Promise<
             avatar: true
           }
         },
+
         chapters: {
           select: {
             id: true,
@@ -166,28 +172,80 @@ export const fullnovelDetailById = async (req: Request, res: Response): Promise<
       }
     })
 
-    console.log(novelCard, "novel page details")
-    res.status(200).json(novelCard)
-    console.log(novelCard, "novel page details")
+    if(bookCard.type == 'COMIC'){
+      const chapters = await prisma.comicChapter.findMany({
+        where: {
+          bookId,
+        },
+        select:{
+          id:true,
+          title:true,
+          number:true,
+          thumbnail:true,
+          createdAt:true,
+        },
+        orderBy: {
+          number: 'asc',
+        },
+        
+      });
+      bookCard = {...bookCard, chapters: chapters}
+
+      console.log(bookCard, "book page details")
+      res.status(200).json(bookCard)
+      console.log(bookCard, "book page details")
+    }
+    else{
+    const chapters = await prisma.chapter.findMany({
+      where: {
+        bookId
+      },
+      select: {
+        id: true,
+        thumbnail: true,
+        title: true,
+        number: true,
+        createdAt: true,
+      },
+      orderBy: {
+        number: 'asc',
+      },
+      
+    });
+
+  console.log(chapters,"hehe");
+  bookCard = {...bookCard, chapters: chapters}
+
+  console.log(bookCard, "book page details")
+  res.status(200).json(bookCard)
+  console.log(bookCard, "book page details")
+  }
+
+  // bookCard = {...bookCard, chapters: chapters}
+
+  //   console.log(bookCard, "book page details")
+  //   res.status(200).json(bookCard)
+  //   console.log(bookCard, "book page details")
   }
   catch (error) {
-    console.error('Error fetching all novels cards:', error);
+    console.error('Error fetching all books cards:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 
 }
 
-export const fullnovelDetail = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user.id;
+export const fullbookDetail = async (req: Request, res: Response): Promise<void> => {
+  const userId = req?.user?.id;
   try {
 
-    let novel = await prisma.novel.findMany({
+    let book = await prisma.book.findMany({
       where: {
         id: req.params.id
       },
       select: {
         id: true,
         title: true,
+        type: true,
         coverImage: true,
         description: true,
         createdAt: true,
@@ -244,41 +302,41 @@ export const fullnovelDetail = async (req: Request, res: Response): Promise<void
     })
 
 
-    console.log(novel, "novel page details")
-    res.status(200).json(novel)
-    console.log(novelCard, "novel page details")
+    console.log(book, "book page details")
+    res.status(200).json(book)
+    console.log(bookCard, "book page details")
   }
   catch (error) {
-    console.error('Error fetching all novels cards:', error);
+    console.error('Error fetching all books cards:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 
 }
-// Controller function to get a single novel by ID
-export const getNovelById = async (req: Request, res: Response): Promise<void> => {
+// Controller function to get a single book by ID
+export const getBookById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
-    const novel = await prisma.novel.findUnique({
+    const book = await prisma.book.findUnique({
       where: {
         id: id,
       },
     });
 
-    if (!novel) {
-      res.status(404).json({ error: 'Novel not found' });
+    if (!book) {
+      res.status(404).json({ error: 'Book not found' });
       return;
     }
 
-    res.status(200).json(novel);
+    res.status(200).json(book);
   } catch (error) {
-    console.error('Error fetching novel by ID:', error);
+    console.error('Error fetching book by ID:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Controller function to get a single novel by title
-export const getNovelByTitle = async (req: Request, res: Response): Promise<void> => {
+// Controller function to get a single book by title
+export const getBookByTitle = async (req: Request, res: Response): Promise<void> => {
   const { title } = req.params;
 
   console.log(title);
@@ -286,125 +344,125 @@ export const getNovelByTitle = async (req: Request, res: Response): Promise<void
 
 
   try {
-    const novel = await prisma.novel.findUnique({
+    const book = await prisma.book.findUnique({
       where: {
         title: decodedUserName,
       },
     });
 
-    if (!novel) {
-      res.status(404).json({ error: 'Novel not found vgvgh' });
+    if (!book) {
+      res.status(404).json({ error: 'Book not found vgvgh' });
       return;
     }
 
-    res.status(200).json(novel);
+    res.status(200).json(book);
   } catch (error) {
-    console.error('Error fetching novel by title:', error);
+    console.error('Error fetching book by title:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-//Controller function to get novels by Genre
-export const getNovelsByGenre = async (req: Request, res: Response): Promise<void> => {
+//Controller function to get books by Genre
+export const getBooksByGenre = async (req: Request, res: Response): Promise<void> => {
   const { genreId } = req.params;
 
   try {
-    const novels = await prisma.novel.findMany({
+    const books = await prisma.book.findMany({
       where: {
         genreId: genreId,
       },
     });
 
-    if (!novels) {
-      res.status(404).json({ error: 'Novels not found' });
+    if (!books) {
+      res.status(404).json({ error: 'Books not found' });
       return;
     }
 
-    res.status(200).json(novels);
+    res.status(200).json(books);
   } catch (error) {
-    console.error('Error fetching novels by Genre:', error);
+    console.error('Error fetching books by Genre:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
-//Controller function to get novels by SubGenre
-export const getNovelsBySubGenre = async (req: Request, res: Response): Promise<void> => {
+//Controller function to get books by SubGenre
+export const getBooksBySubGenre = async (req: Request, res: Response): Promise<void> => {
   const { subGenreId } = req.params;
 
   try {
-    const novels = await prisma.novel.findMany({
+    const books = await prisma.book.findMany({
       where: {
         subGenreId: subGenreId,
       },
     });
 
-    if (!novels) {
-      res.status(404).json({ error: 'Novels not found' });
+    if (!books) {
+      res.status(404).json({ error: 'Books not found' });
       return;
     }
 
-    res.status(200).json(novels);
+    res.status(200).json(books);
   } catch (error) {
-    console.error('Error fetching novels by SubGenre:', error);
+    console.error('Error fetching books by SubGenre:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-//Contoller function to get novels by Series
-export const getNovelsBySeries = async (req: Request, res: Response): Promise<void> => {
+//Contoller function to get books by Series
+export const getBooksBySeries = async (req: Request, res: Response): Promise<void> => {
   const { seriesId } = req.params;
 
   try {
-    const novels = await prisma.novel.findMany({
+    const books = await prisma.book.findMany({
       where: {
         seriesId: seriesId,
       },
     });
 
-    if (!novels) {
-      res.status(404).json({ error: 'Novels not found' });
+    if (!books) {
+      res.status(404).json({ error: 'Books not found' });
       return;
     }
 
-    res.status(200).json(novels);
+    res.status(200).json(books);
   } catch (error) {
-    console.error('Error fetching novels by Series:', error);
+    console.error('Error fetching books by Series:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
-// Controller function to get novels by Author
-export const getNovelsByAuthor = async (req: Request, res: Response): Promise<void> => {
+// Controller function to get books by Author
+export const getBooksByAuthor = async (req: Request, res: Response): Promise<void> => {
   const { authorId } = req.params;
 
   try {
-    const novels = await prisma.novel.findMany({
+    const books = await prisma.book.findMany({
       where: {
         authorId: authorId,
       },
     });
 
-    if (!novels) {
-      res.status(404).json({ error: 'Novels not found' });
+    if (!books) {
+      res.status(404).json({ error: 'Books not found' });
       return;
     }
 
-    res.status(200).json(novels);
+    res.status(200).json(books);
   } catch (error) {
-    console.error('Error fetching novels by Author:', error);
+    console.error('Error fetching books by Author:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
-// Controller function to get novel liked by user
-export const getNovelLikedByUser = async (req: Request, res: Response): Promise<void> => {
+// Controller function to get book liked by user
+export const getBookLikedByUser = async (req: Request, res: Response): Promise<void> => {
   const  userId  = req.user.id;
 
   try {
-    const novels = await prisma.novel.findMany({
+    const books = await prisma.book.findMany({
       where: {
         Likes: {
           some: {
@@ -417,6 +475,7 @@ export const getNovelLikedByUser = async (req: Request, res: Response): Promise<
         id: true,
         title: true,
         coverImage: true,
+        type: true,
         ...(
           userId &&{
             Likes: {
@@ -452,30 +511,30 @@ export const getNovelLikedByUser = async (req: Request, res: Response): Promise<
         
       }
     });
-    console.log(novels, "novels liked by user")
+    console.log(books, "books liked by user")
 
-    if (!novels) {
-      res.status(404).json({ error: 'Novels not found' });
+    if (!books) {
+      res.status(404).json({ error: 'Books not found' });
       return;
     }
 
-    res.status(200).json(novels);
+    res.status(200).json(books);
   } catch (error) {
-    console.error('Error fetching novels liked by user:', error);
+    console.error('Error fetching books liked by user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
 
-// Controller function to update a novel by ID
-export const updateNovelById = async (req: Request, res: Response): Promise<void> => {
+// Controller function to update a book by ID
+export const updateBookById = async (req: Request, res: Response): Promise<void> => {
   const image = req.upload_urls?.Single_file;
   const { id } = req.params;
   const { title, description, authorId, seriesId, genreId, subGenreId } = req.body;
 
   try {
-    const updatedNovel = await prisma.novel.update({
+    const updatedBook = await prisma.book.update({
       where: {
         id: id,
       },
@@ -490,20 +549,20 @@ export const updateNovelById = async (req: Request, res: Response): Promise<void
       },
     });
 
-    res.status(200).json(updatedNovel);
+    res.status(200).json(updatedBook);
   } catch (error) {
-    console.error('Error updating novel by ID:', error);
+    console.error('Error updating book by ID:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
-// Controller function to delete a novel by ID
-export const deleteNovelById = async (req: Request, res: Response): Promise<void> => {
+// Controller function to delete a book by ID
+export const deleteBookById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
-    await prisma.novel.delete({
+    await prisma.book.delete({
       where: {
         id: id,
       },
@@ -511,7 +570,7 @@ export const deleteNovelById = async (req: Request, res: Response): Promise<void
 
     res.status(204).end();
   } catch (error) {
-    console.error('Error deleting novel by ID:', error);
+    console.error('Error deleting book by ID:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

@@ -7,12 +7,12 @@ export const getStats = async (req: Request, res: Response) => {
     try {
         const genreCount = await prisma.genre.count();
         const seriesCount = await prisma.series.count();
-        const novelCount = await prisma.novel.count();
+        const bookCount = await prisma.book.count();
         const userCount = await prisma.user.count();
         const stats = {
         genreCount,
         seriesCount,
-        novelCount,
+        bookCount,
         userCount,
         };
 

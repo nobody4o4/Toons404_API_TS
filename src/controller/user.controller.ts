@@ -12,7 +12,7 @@ import { ErrorCodes } from "../middleware/errors/index.error";
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // RegisterValidator.parse(req.body);
-    const { firstName, lastName, username, email, password } = req.body;
+    const { firstName, lastName, username, email, phone,bio, password } = req.body;
     const image = req.upload_urls?.Single_file;
     let user = await prisma.user.findUnique({ where: { email } });
     if (user) {
@@ -27,6 +27,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         lastName,
         username,
         email,
+        phone,
+        bio,
         password: hashedPassword,
         avatar: image
       },
@@ -81,7 +83,7 @@ export const getCurrentUserProfile = async (req: Request, res: Response) => {
             Followings: true,
           }
         },
-        novels: {
+        books: {
           select: {
             id: true,
             title: true,
@@ -135,7 +137,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
             Followings: true,
           },
         },
-        novels: {
+        books: {
           select: {
             id: true,
             title: true,
@@ -298,11 +300,11 @@ export const getUserById = async (req: Request, res: Response) => {
           select: {
             Followers: true,
             Followings: true,
-            novels: true,
+            books: true,
             Series: true
           }
         },
-        novels: {
+        books: {
           select: {
             id: true,
             title: true,
@@ -330,7 +332,7 @@ export const getUserById = async (req: Request, res: Response) => {
             id: true,
             title: true,
             coverImage: true,
-            novels: {
+            books: {
               select: {
                 id: true,
                 title: true,
@@ -415,7 +417,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
           select: {
             Followers: true,
             Followings: true,
-            novels: true,
+            books: true,
             Series: true
           }
         },

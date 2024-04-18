@@ -71,7 +71,7 @@ export const getSeriesName = async (req: Request, res: Response) => {
 
 // Controller function to get a single series by ID
 export const getSeriesById = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user?.id;
+  const userId = req?.user?.id;
   const { id } = req.params;
 
   try {
@@ -116,9 +116,9 @@ export const getSeriesById = async (req: Request, res: Response): Promise<void> 
 };
 
 export const seriesCard = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user.id;
+  const userId = req?.user?.id;
   try {
-    const novelCard = await prisma.series.findMany({
+    const bookCard = await prisma.series.findMany({
       select: {
         id: true,
         title: true,
@@ -140,17 +140,17 @@ export const seriesCard = async (req: Request, res: Response): Promise<void> => 
         }
       }
     })
-    res.status(200).json(novelCard)
+    res.status(200).json(bookCard)
   }
   catch (error) {
-    console.error('Error fetching all novels cards:', error);
+    console.error('Error fetching all books cards:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 
 }
 
 export const getSeriesDetails = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user?.id;
+  const userId = req?.user?.id;
   const { id } = req.params;
 
   try {
@@ -166,7 +166,7 @@ export const getSeriesDetails = async (req: Request, res: Response): Promise<voi
             avatar: true,
           },
         },
-        novels: {
+        books: {
           select: {
             id: true,
             title: true,

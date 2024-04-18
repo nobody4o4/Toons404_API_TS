@@ -10,17 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-enum Status {
-  ONGOING
-  COMPLETED
-  HIATUS
-}
-
 model User {
   id                 String             @id @default(uuid())
   avatar             String?
@@ -29,11 +18,12 @@ model User {
   bio                String?
   username           String             @unique
   email              String             @unique
+  phone              String?            @unique
   password           String
   role               Role               @default(USER)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
-  novels             Novel[]
+  books              Book[]
   Series             Series[]
   subscriptions      Subscription[]
   Likes              Likes[]
@@ -44,38 +34,43 @@ model User {
   PostCommentReplies PostCommentReply[]
   Followers          Follow[]           @relation("follower")
   Followings         Follow[]           @relation("following")
+  Forum              Forum[]
 }
 
 model Genre {
-  id             String   @id @default(uuid())
-  name           String   @unique
-  description    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  novels         Novel[]  @relation("GenreNovels")
-  subGenreNovels Novel[]  @relation("SubGenreNovels")
-  coverImage     String?
+  id            String   @id @default(uuid())
+  name          String   @unique
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  books         Book[]   @relation("GenreBooks")
+  subGenreBooks Book[]   @relation("SubGenreBooks")
+  coverImage    String?
 }
 
-model Novel {
-  id          String    @id @default(uuid())
-  title       String    @unique
-  description String
-  likes       Int       @default(0)
-  author      User      @relation(fields: [authorId], references: [id])
-  authorId    String
-  series      Series?   @relation(fields: [seriesId], references: [id])
-  seriesId    String?
-  genre       Genre     @relation("GenreNovels", fields: [genreId], references: [id])
-  genreId     String
-  subGenre    Genre     @relation("SubGenreNovels", fields: [subGenreId], references: [id])
-  subGenreId  String
-  status      Status    @default(ONGOING)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  chapters    Chapter[]
-  coverImage  String
-  Likes       Likes[]
+model Book {
+  id           String         @id @default(uuid())
+  title        String         @unique
+  description  String
+  likes        Int            @default(0)
+  author       User           @relation(fields: [authorId], references: [id])
+  authorId     String
+  type         BookType       @default(NOVEL)
+  series       Series?        @relation(fields: [seriesId], references: [id])
+  seriesId     String?
+  genre        Genre          @relation("GenreBooks", fields: [genreId], references: [id])
+  genreId      String
+  subGenre     Genre          @relation("SubGenreBooks", fields: [subGenreId], references: [id])
+  subGenreId   String
+  status       Status         @default(ONGOING)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  chapters     Chapter[]
+  coverImage   String
+  Likes        Likes[]
+  ComicChapter ComicChapter[]
+
+  @@map("Book")
 }
 
 model Series {
@@ -86,26 +81,51 @@ model Series {
   updatedAt   DateTime @updatedAt
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
-  novels      Novel[]
+  books       Book[]
   coverImage  String
-  forum       Forum?
+  forum       Forum?   @relation(fields: [forumId], references: [id])
   Likes       Likes[]
+  forumId     String?
 }
 
 model Chapter {
   id        String     @id @default(uuid())
   title     String
+  thumbnail String
   content   String
-  likes     Int        @default(0)
   views     Int        @default(0)
-  novel     Novel      @relation(fields: [novelId], references: [id])
-  novelId   String
+  book      Book       @relation(fields: [bookId], references: [id])
+  bookId    String
   number    Int        @default(0)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  thumbnail String
   Likes     Likes[]
   Comments  Comments[]
+}
+
+model ComicChapter {
+  id         String       @id @default(uuid())
+  title      String
+  thumbnail  String
+  views      Int          @default(0)
+  book       Book         @relation(fields: [bookId], references: [id])
+  bookId     String
+  number     Int
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  ComicImage ComicImage[]
+  Likes      Likes[]
+  Comments   Comments[]
+}
+
+model ComicImage {
+  id             String       @id @default(uuid())
+  image          String
+  ComicChapter   ComicChapter @relation(fields: [comicChapterId], references: [id])
+  comicChapterId String
+  number         Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Plan {
@@ -132,33 +152,37 @@ model Subscription {
 }
 
 model Likes {
-  id            String       @id @default(uuid())
-  user          User         @relation(fields: [userId], references: [id])
-  userId        String
-  novel         Novel?       @relation(fields: [novelId], references: [id])
-  novelId       String?
-  chapter       Chapter?     @relation(fields: [chapterId], references: [id])
-  chapterId     String?
-  comment       Comments?    @relation(fields: [commentId], references: [id])
-  commentId     String?
-  series        Series?      @relation(fields: [seriesId], references: [id])
-  seriesId      String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  PostComment   PostComment? @relation(fields: [postCommentId], references: [id])
-  postCommentId String?
+  id             String        @id @default(uuid())
+  user           User          @relation(fields: [userId], references: [id])
+  userId         String
+  book           Book?         @relation(fields: [bookId], references: [id])
+  bookId         String?
+  chapter        Chapter?      @relation(fields: [chapterId], references: [id])
+  chapterId      String?
+  comment        Comments?     @relation(fields: [commentId], references: [id])
+  commentId      String?
+  series         Series?       @relation(fields: [seriesId], references: [id])
+  seriesId       String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  PostComment    PostComment?  @relation(fields: [postCommentId], references: [id])
+  postCommentId  String?
+  ComicChapter   ComicChapter? @relation(fields: [comicChapterId], references: [id])
+  comicChapterId String?
 }
 
 model Comments {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  chapter   Chapter  @relation(fields: [chapterId], references: [id])
-  chapterId String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Likes     Likes[]
+  id             String        @id @default(uuid())
+  user           User          @relation(fields: [userId], references: [id])
+  userId         String
+  chapter        Chapter?      @relation(fields: [chapterId], references: [id])
+  chapterId      String?
+  content        String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  Likes          Likes[]
+  ComicChapter   ComicChapter? @relation(fields: [comicChapterId], references: [id])
+  comicChapterId String?
 }
 
 model Follow {
@@ -175,10 +199,11 @@ model Forum {
   id        String   @id @default(uuid())
   title     String
   posts     Post[]
-  series    Series   @relation(fields: [seriesId], references: [id])
-  seriesId  String   @unique
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Series    Series[]
 }
 
 model Post {
@@ -227,6 +252,22 @@ model PostCommentReply {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookType {
+  NOVEL
+  COMIC
+}
+
+enum Status {
+  ONGOING
+  COMPLETED
+  HIATUS
 }
 
 enum BillingInterval {

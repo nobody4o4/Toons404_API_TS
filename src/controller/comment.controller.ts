@@ -6,39 +6,48 @@ import { prisma } from "..";
 
 
 export const addComment = async (req: Request, res: Response): Promise<void> => {
-  try {
-    console.log(req.body, 'woowowowowowowoowow');
-    const { comment } = req.body;
-    const { chapterId } = req.params;
-    const userId = req.user.id;
+    try {
+        console.log(req.body, 'woowowowowowowoowow');
 
-    const addedComment = await prisma.comments.create({
-      data: {
-        content: comment,
-        chapter:{
-            connect:{
-                id: chapterId
-            }
-        },
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-      },
-    });
+        const { comment, type } = req.body;
+        const { chapterId } = req.params;
+        const userId = req.user?.id;
 
-    res.status(201).json(addedComment);
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+        // Validate the request
+        if (!['NOVEL', 'chapter', 'comment', 'series', 'COMIC'].includes(type)) {
+            res.status(400).json({ error: 'Invalid request' });
+            return;
+        }
+
+        if (!userId || !type || !chapterId || !comment) {
+            res.status(400).json({ error: 'Invalid request' });
+            return;
+        }
+
+        const addedComment = await prisma.comments.create({
+            data: {
+                content: comment,
+                ...(type === 'NOVEL' && { chapter: { connect: { id: chapterId } } }),
+                ...(type === 'COMIC' && { ComicChapter: { connect: { id: chapterId } } }),
+                user: {
+                    connect: {
+                        id: userId,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(addedComment);
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 };
 
 //controller for removing comment from chapter
 export const removeComment = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user.id;
+        const userId = req.user?.id;
         const { commentId } = req.body;
 
         const comment = await prisma.comments.delete({
@@ -57,7 +66,7 @@ export const removeComment = async (req: Request, res: Response): Promise<void> 
 //controller for deleting comment in chapter
 export const deleteComment = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user.id;
+        const userId = req.user?.id;
         const { commentId } = req.body;
 
         const comment = await prisma.comments.delete({
@@ -75,39 +84,98 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
 
 //controller for getting comment in chapter
 export const getComment = async (req: Request, res: Response): Promise<void> => {
-    const userId = req.user?.id;
-    try {
-        const comment = await prisma.comments.findMany({
-            where: {
-                chapterId: req.params.chapterId,
-            },
-            include:{
-                user:{
-                    select:{
-                        username:true,
-                        avatar:true
+    console.log(req.params, 'woowowowowowowoowow');
 
+    const { chapterId, type } = req.params;
+    const userId = req?.user?.id;
+
+    // Validate the request
+    if (!['NOVEL', 'COMIC'].includes(type)) {
+        res.status(400).json({ error: 'Invalid request' });
+        return;
+    }
+
+    if (!userId || !type || !chapterId) {
+        res.status(400).json({ error: 'Invalid request' });
+        return;
+    }
+
+
+
+    try {
+        if (type === 'NOVEL') {
+            const comment = await prisma.comments.findMany({
+                where: {
+                    chapterId: chapterId
+                },
+                include: {
+                    user: {
+                        select: {
+                            username: true,
+                            avatar: true
+
+                        }
+                    }
+                    ,
+                    ...(userId &&
+                    {
+                        Likes: {
+                            where: {
+                                userId: req.user?.id
+                            },
+                            select: {
+                                userId: true
+                            }
+                        }
+                    }
+                    ),
+                    _count: {
+                        select: {
+                            Likes: true,
+                        }
                     }
                 }
-                ,
-                ...( userId &&
-                    {Likes:{
-                        where:{
-                            userId:req.user?.id
-                        },
-                        select:{
-                            userId:true
+            });
+            console.log(comment, 'comment in novel');
+            res.status(200).json(comment);
+        } else if (type === 'COMIC'){
+            const comment = await prisma.comments.findMany({
+                where: {
+                    comicChapterId: chapterId
+                },
+                include: {
+                    user: {
+                        select: {
+                            username: true,
+                            avatar: true
+
                         }
-                    }}
-        ),
-                _count: {
-                    select: {
-                      Likes: true,
                     }
-                  }
-            }
-        });
-        res.status(200).json(comment);
+                    ,
+                    ...(userId &&
+                    {
+                        Likes: {
+                            where: {
+                                userId: req.user?.id
+                            },
+                            select: {
+                                userId: true
+                            }
+                        }
+                    }
+                    ),
+                    _count: {
+                        select: {
+                            Likes: true,
+                        }
+                    }
+                }
+            });
+            console.log(comment, 'comment in comic');
+            res.status(200).json(comment);
+        }
+
+
     } catch (error) {
         console.error('Error fetching comment:', error);
         res.status(500).json({ error: 'Internal server error' });

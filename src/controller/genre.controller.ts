@@ -124,7 +124,7 @@ export const getAllGenres = async (req: Request, res: Response) => {
     }
 }
 
-//get genre name and id for dropdown select in novel admin form
+//get genre name and id for dropdown select in book admin form
 export const getGenreName = async (req: Request, res: Response) => {
   try {
     const genres = await prisma.genre.findMany({
