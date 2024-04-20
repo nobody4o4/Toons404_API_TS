@@ -308,8 +308,7 @@ console.log(number,bookId,"num, bookId");
     console.log(bookType, "bookTypeaaa...")
 
     if(bookType.type == 'COMIC'){
-      console.log('comic chapter')
-      const chapter = await prisma.comicChapter.findFirst({
+      let chapter = await prisma.comicChapter.findFirst({
         where: {
           number: number,
           AND:[
@@ -373,13 +372,54 @@ console.log(number,bookId,"num, bookId");
         }
       })
 
+      //check previous chapter
+      const previousChapter = await prisma.comicChapter.findFirst({
+        where: {
+          bookId,
+          number: {
+            lt: number,
+          },
+        },
+        select:{
+          number:true,
+        },
+        orderBy: {
+          number: 'desc',
+        },
+      });
+
+      //check next chapter
+      const nextChapter = await prisma.comicChapter.findFirst({
+        where: {
+          bookId,
+          number: {
+            gt: number,
+          },
+          
+        },
+        select:{
+          number:true,
+        },
+        orderBy: {
+          number: 'asc',
+        },
+      });
+
       console.log(chapter,"chapter comiccccc")
-  
-      res.status(200).json(chapter);
+
+      const chapterDetails = {
+        ...chapter,
+        previousChapter  : previousChapter ?? null,
+        nextChapter  : nextChapter ?? null,
+      };
+      console.log(chapterDetails,"chapterDetails")
+      console.log(chapter,"chapter comiccccc")
+
+      res.status(200).json(chapterDetails);
     }else {
 
       console.log("novel chapter")
-    const chapter = await prisma.chapter.findFirst({
+    let chapter = await prisma.chapter.findFirst({
       where: {
         number: number,
         AND:[
@@ -424,6 +464,7 @@ console.log(number,bookId,"num, bookId");
       return;
     }
 
+  
     // count views 
     await prisma.chapter.update({
       where: {
@@ -436,7 +477,50 @@ console.log(number,bookId,"num, bookId");
       }
     })
 
-    res.status(200).json(chapter);
+    //check previous chapter
+    const previousChapter = await prisma.chapter.findFirst({
+      where: {
+        bookId,
+        number: {
+          lt: number,
+        },
+      },
+      select:{
+        number:true,
+      },
+      orderBy: {
+        number: 'desc',
+      },
+    });
+
+    //check next chapter
+    const nextChapter = await prisma.chapter.findFirst({
+      where: {
+        bookId,
+        number: {
+          gt: number,
+        },
+        
+      },
+      select:{
+        number:true,
+      },
+      orderBy: {
+        number: 'asc',
+      },
+    });
+
+    console.log(chapter,"chapter novel")
+
+    const chapterDetails = {
+      ...chapter,
+      previousChapter  : previousChapter ?? null,
+      nextChapter  : nextChapter ?? null,
+    };
+
+  
+
+    res.status(200).json(chapterDetails);
   }
   } catch (error) {
     console.error('Error fetching chapter:', error);

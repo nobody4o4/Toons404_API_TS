@@ -40,7 +40,8 @@ const getUserMiddleware = async (req: Request, res: Response, next: NextFunction
         if (bearer !== "Bearer") {
             throw new Error("Invalid token");
         }
-        if (t || t === "null" || t === "undefined" || t === null || t === undefined) {
+        console.log(t, "this is token");
+        if (!t || t === "null" || t === "undefined" || t === null || t === undefined) {
             console.log("no token")
         } else {
             const payload = jwt.verify(t, JWT_SECRET) as any;

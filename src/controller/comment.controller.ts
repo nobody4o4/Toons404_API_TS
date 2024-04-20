@@ -87,16 +87,18 @@ export const getComment = async (req: Request, res: Response): Promise<void> => 
     console.log(req.params, 'woowowowowowowoowow');
 
     const { chapterId, type } = req.params;
-    const userId = req?.user?.id;
+    const userId = req.user?.id;
+
+    console.log(chapterId, type, userId, 'wooUSERRRR')
 
     // Validate the request
     if (!['NOVEL', 'COMIC'].includes(type)) {
-        res.status(400).json({ error: 'Invalid request' });
+        res.status(400).json({ error: 'Invalid requestxxxxxxx' });
         return;
     }
 
     if (!userId || !type || !chapterId) {
-        res.status(400).json({ error: 'Invalid request' });
+        res.status(400).json({ error: 'Invalid requestsssss' });
         return;
     }
 

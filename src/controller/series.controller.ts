@@ -171,6 +171,7 @@ export const getSeriesDetails = async (req: Request, res: Response): Promise<voi
             id: true,
             title: true,
             coverImage: true,
+            type: true,
             ...(userId && {
               Likes: {
                 where:{
