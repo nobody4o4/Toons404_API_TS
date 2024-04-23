@@ -35,6 +35,8 @@ model User {
   Followers          Follow[]           @relation("follower")
   Followings         Follow[]           @relation("following")
   Forum              Forum[]
+  History            History[]
+  AuthorRequest      AuthorRequest[]
 }
 
 model Genre {
@@ -69,6 +71,7 @@ model Book {
   coverImage   String
   Likes        Likes[]
   ComicChapter ComicChapter[]
+  isPremium    Boolean        @default(false)
 
   @@map("Book")
 }
@@ -83,9 +86,7 @@ model Series {
   author      User     @relation(fields: [authorId], references: [id])
   books       Book[]
   coverImage  String
-  forum       Forum?   @relation(fields: [forumId], references: [id])
   Likes       Likes[]
-  forumId     String?
 }
 
 model Chapter {
@@ -101,6 +102,7 @@ model Chapter {
   updatedAt DateTime   @updatedAt
   Likes     Likes[]
   Comments  Comments[]
+  History   History[]
 }
 
 model ComicChapter {
@@ -116,6 +118,7 @@ model ComicChapter {
   ComicImage ComicImage[]
   Likes      Likes[]
   Comments   Comments[]
+  History    History[]
 }
 
 model ComicImage {
@@ -126,6 +129,18 @@ model ComicImage {
   number         Int
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+}
+
+model History {
+  id             String        @id @default(uuid())
+  user           User          @relation(fields: [userId], references: [id])
+  userId         String
+  chapter        Chapter?      @relation(fields: [chapterId], references: [id])
+  chapterId      String?
+  comicChapter   ComicChapter? @relation(fields: [comicChapterId], references: [id])
+  comicChapterId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model Plan {
@@ -196,41 +211,51 @@ model Follow {
 }
 
 model Forum {
-  id        String   @id @default(uuid())
-  title     String
-  posts     Post[]
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Series    Series[]
+  id          String   @id @default(uuid())
+  title       String
+  coverImage  String?
+  description String?
+  posts       Post[]
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuthorRequest {
+  id        String        @id @default(uuid())
+  user      User          @relation(fields: [userId], references: [id])
+  userId    String
+  status    RequestStatus
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }
 
 model Post {
-  id                 String             @id @default(uuid())
-  title              String
-  content            String
-  user               User               @relation(fields: [userId], references: [id])
-  userId             String
-  forum              Forum              @relation(fields: [forumId], references: [id])
-  forumId            String
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  PostComments       PostComment[]
-  PostLikes          PostLike[]
-  PostCommentReplies PostCommentReply[]
+  id           String        @id @default(uuid())
+  title        String
+  content      String
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+  forum        Forum         @relation(fields: [forumId], references: [id])
+  forumId      String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  PostComments PostComment[]
+  PostLikes    PostLike[]
 }
 
 model PostComment {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  postId    String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Likes     Likes[]
+  id               String             @id @default(uuid())
+  user             User               @relation(fields: [userId], references: [id])
+  userId           String
+  post             Post               @relation(fields: [postId], references: [id])
+  postId           String
+  content          String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  Likes            Likes[]
+  PostCommentReply PostCommentReply[]
 }
 
 model PostLike {
@@ -244,24 +269,31 @@ model PostLike {
 }
 
 model PostCommentReply {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  postId    String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String      @id @default(uuid())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  postComment   PostComment @relation(fields: [postCommentId], references: [id])
+  postCommentId String
+  content       String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 enum Role {
   USER
   ADMIN
+  AUTHOR
 }
 
 enum BookType {
   NOVEL
   COMIC
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 enum Status {

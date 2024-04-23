@@ -68,6 +68,8 @@ export const createChapter = async (req: Request, res: Response): Promise<void> 
   console.log(title, content, bookId, type, 'chapter...');
   console.log(type, 'chapter...tyeppepepepepep');
 
+  
+
   try {
     if(type == 'COMIC'){
       const newChapter = await prisma.comicChapter.create({
@@ -207,6 +209,10 @@ try{
           title:true,
           number:true,
           views:true,
+          book:{
+            select:{
+              isPremium:true,
+          }},
           ...(userId && {
             Likes: {
               where:{
@@ -253,6 +259,10 @@ try{
         title:true,
         number:true,
         views:true,
+        book:{
+          select:{
+            isPremium:true,
+        }},
         ...(userId && {
           Likes: {
             where:{
@@ -346,6 +356,7 @@ console.log(number,bookId,"num, bookId");
             select:{
               title:true,
               type:true,
+              isPremium:true,
               author:{
                 select:{
                   username:true
@@ -371,6 +382,24 @@ console.log(number,bookId,"num, bookId");
           }
         }
       })
+
+      if (userId) {
+        const existingHistory = await prisma.history.findFirst({
+          where: {
+            userId: userId,
+            comicChapterId: chapter.id
+          }
+        });
+      
+        if (!existingHistory) {
+          await prisma.history.create({
+            data: {
+              userId,
+              comicChapterId: chapter.id
+            }
+          });
+        }
+      }
 
       //check previous chapter
       const previousChapter = await prisma.comicChapter.findFirst({
@@ -448,6 +477,7 @@ console.log(number,bookId,"num, bookId");
           select:{
             title:true,
             type:true,
+            isPremium:true,
             author:{
               select:{
                 username:true
@@ -476,6 +506,26 @@ console.log(number,bookId,"num, bookId");
         }
       }
     })
+
+    if (userId) {
+      const existingHistory = await prisma.history.findFirst({
+        where: {
+          userId: userId,
+          chapterId: chapter.id
+
+        }
+      });
+    
+      if (!existingHistory) {
+        await prisma.history.create({
+          data: {
+            userId,
+            chapterId: chapter.id
+          }
+        });
+      }
+    }
+
 
     //check previous chapter
     const previousChapter = await prisma.chapter.findFirst({
@@ -558,6 +608,7 @@ export const getChapterById = async (req: Request, res: Response): Promise<void>
         book:{
           select:{
             title:true,
+            isPremium:true,
             author:{
               select:{
                 username:true
@@ -596,6 +647,27 @@ export const updateChapterById = async (req: Request, res: Response): Promise<vo
     return;
   }
 
+  const role : string = req?.user?.role;
+
+  if(role === 'AUTHOR'){
+    const authorId = await prisma.chapter.findUnique({
+      where:{
+        id:id
+      },
+      select:{
+        book:{
+          select:{
+            authorId:true
+          }
+        }
+      }
+    })
+    if(authorId?.book.authorId !== req.user?.id){
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+  }
+
   try {
 
     const updatedChapter = await prisma.chapter.update({
@@ -621,6 +693,27 @@ export const deleteChapterById = async (req: Request, res: Response): Promise<vo
   const { id } = req.params;
 
   try {
+    const role : string = req?.user?.role;
+
+    if(role === 'AUTHOR'){
+      const authorId = await prisma.chapter.findUnique({
+        where:{
+          id:id
+        },
+        select:{
+          book:{
+            select:{
+              authorId:true
+            }
+          }
+        }
+      })
+      if(authorId?.book.authorId !== req.user?.id){
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+    }
+    
     await prisma.chapter.delete({
       where: {
         id: id,

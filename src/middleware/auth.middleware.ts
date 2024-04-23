@@ -63,11 +63,12 @@ const getUserMiddleware = async (req: Request, res: Response, next: NextFunction
 
 const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
+    console.log(user, "this is user");
 
-    if (user.role !== "ADMIN") {
-        return res.status(403).json({ error: "Unauthorized" });
+    if (user.role !== "ADMIN" && user.role !=="AUTHOR") {
+        throw new Error("Unauthorized");
     }
-
+    
     next();
 }
 

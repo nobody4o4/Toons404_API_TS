@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
 import { prisma } from '..';
+import { ErrorCodes, HttpException } from '../middleware/errors/index.error';
+import { InternalErrors } from '../middleware/errors/internalErrors';
 
 // Controller function to create a new book
 export const createBook = async (req: Request, res: Response): Promise<void> => {
   const image = req.upload_urls?.Single_file;
   const userId = req?.user?.id;
   console.log(req.body, 'novejhdvhjbdsjcbsdjhbcjdsbjhcb')
-  const { title, description, series, genre, subGenre, type } = req.body;
+  const { title, description, series, genre, subGenre, type, isPremium } = req.body;
   console.log(title, description, series, genre, subGenre, 'book...');
 
   try {
@@ -15,9 +17,11 @@ export const createBook = async (req: Request, res: Response): Promise<void> => 
         title: title,
       },
     });
+    console.log(existingBook,"existing book")
     // If the book already exists, return an error
     if (existingBook) {
-      res.status(400).json({ error: 'Book already exists' });
+      throw new HttpException( 'Book already exists', ErrorCodes.BAD_REQUEST, 400, null);
+      // res.status(400).json({ error: 'Book already exists' });
       return;
     }
     const newBook = await prisma.book.create({
@@ -25,18 +29,25 @@ export const createBook = async (req: Request, res: Response): Promise<void> => 
         title: title,
         description: description,
         authorId: userId,
-        seriesId: series,
+        seriesId: "40f33230-ba09-4477-952d-c4f1c89570eb",
         type:type,
         genreId: genre,
         subGenreId: subGenre,
         coverImage: image,
+        isPremium: !!isPremium
       },
     });
 
     res.status(201).json(newBook);
   } catch (error) {
     console.error('Error creating book:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    let exception : HttpException;
+    if( error instanceof HttpException){
+        exception = error;
+
+    }else{
+        exception = new InternalErrors("Something went wrong", error.message, ErrorCodes.INTERNAL_SERVER_ERROR);
+    }
   }
 };
 
@@ -61,6 +72,11 @@ export const bookCard = async (req: Request, res: Response): Promise<void> => {
         title: true,
         coverImage: true,
         type: true,
+        author:{
+          select:{
+            username: true,
+          }
+        },
         ...(userId && {
           Likes: {
             where:{
@@ -105,7 +121,9 @@ export const bookCard = async (req: Request, res: Response): Promise<void> => {
 export const fullbookDetailById = async (req: Request, res: Response): Promise<void> => {
   const userId = req?.user?.id;
   const bookId = req?.params?.id;
+
   try {
+    
     let bookCard = await prisma.book.findUnique({
       where: {
         id: bookId
@@ -117,6 +135,8 @@ export const fullbookDetailById = async (req: Request, res: Response): Promise<v
         likes: true,
         type: true,
         createdAt: true,
+        updatedAt: true,
+        isPremium: true,
         genre: {
           select: {
             id: true,
@@ -141,7 +161,8 @@ export const fullbookDetailById = async (req: Request, res: Response): Promise<v
         author: {
           select: {
             username: true,
-            avatar: true
+            avatar: true,
+            bio: true,
           }
         },
 
@@ -236,11 +257,19 @@ export const fullbookDetailById = async (req: Request, res: Response): Promise<v
 
 export const fullbookDetail = async (req: Request, res: Response): Promise<void> => {
   const userId = req?.user?.id;
+  const bookId = req?.params?.id;
+  let authorId : string = null;
   try {
+    const role : string = req?.user?.role;
+
+    if(role === 'AUTHOR'){
+       authorId = userId
+    }
 
     let book = await prisma.book.findMany({
       where: {
-        id: req.params.id
+        id: bookId,
+       ...( authorId !== null && {authorId: authorId})
       },
       select: {
         id: true,
@@ -250,6 +279,7 @@ export const fullbookDetail = async (req: Request, res: Response): Promise<void>
         description: true,
         createdAt: true,
         updatedAt: true,
+        isPremium: true,
         likes: true,
         ...(userId && {
           Likes: {
@@ -284,7 +314,8 @@ export const fullbookDetail = async (req: Request, res: Response): Promise<void>
         author: {
           select: {
             username: true,
-            avatar: true
+            avatar: true,
+            bio: true,
           }
         },
         chapters: {
@@ -300,8 +331,6 @@ export const fullbookDetail = async (req: Request, res: Response): Promise<void>
 
       }
     })
-
-
     console.log(book, "book page details")
     res.status(200).json(book)
     console.log(bookCard, "book page details")
@@ -534,6 +563,24 @@ export const updateBookById = async (req: Request, res: Response): Promise<void>
   const { title, description, authorId, seriesId, genreId, subGenreId } = req.body;
 
   try {
+
+    const role : string = req?.user?.role;
+
+    if(role === 'AUTHOR'){
+      const authorId = await prisma.book.findUnique({
+        where:{
+          id:id
+        },
+        select:{
+              authorId:true
+        }
+      })
+      if(authorId?.authorId !== req.user?.id){
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+    }
+
     const updatedBook = await prisma.book.update({
       where: {
         id: id,

@@ -37,7 +37,58 @@ export const addComment = async (req: Request, res: Response): Promise<void> => 
             },
         });
 
-        res.status(201).json(addedComment);
+        if(!addedComment){
+            res.status(400).json({ error: 'Invalid request' });
+            return;
+        }
+
+        const commentDetails = await prisma.comments.findUnique({
+            where: {
+                id: addedComment.id,
+            },
+            include: {
+                user: {
+                    select: {
+                        username: true,
+                        avatar: true
+
+                    }
+                }
+                ,
+                ...(userId &&
+                {
+                    Likes: {
+                        where: {
+                            userId: req.user?.id
+                        },
+                        select: {
+                            userId: true
+                        }
+                    }
+                }
+                ),
+                _count: {
+                    select: {
+                        Likes: true,
+                    }
+                }
+            }
+        });
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                username: true,
+                avatar: true,
+            },
+        });
+
+        const addedCommentDetails = { ...addedComment, user };
+
+
+        res.status(201).json(commentDetails);
     } catch (error) {
         console.error('Error adding comment:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -105,77 +156,113 @@ export const getComment = async (req: Request, res: Response): Promise<void> => 
 
 
     try {
-        if (type === 'NOVEL') {
-            const comment = await prisma.comments.findMany({
-                where: {
-                    chapterId: chapterId
-                },
-                include: {
-                    user: {
-                        select: {
-                            username: true,
-                            avatar: true
+        // if (type === 'NOVEL') {
+        //     const comment = await prisma.comments.findMany({
+        //         where: {
+        //             ...(type === "NOVEL" ? { chapterId: chapterId } : { comicChapterId: chapterId }),
+        //         },
+        //         include: {
+        //             user: {
+        //                 select: {
+        //                     username: true,
+        //                     avatar: true
 
-                        }
+        //                 }
+        //             }
+        //             ,
+        //             ...(userId &&
+        //             {
+        //                 Likes: {
+        //                     where: {
+        //                         userId: req.user?.id
+        //                     },
+        //                     select: {
+        //                         userId: true
+        //                     }
+        //                 }
+        //             }
+        //             ),
+        //             _count: {
+        //                 select: {
+        //                     Likes: true,
+        //                 }
+        //             }
+        //         }
+        //     });
+        //     console.log(comment, 'comment in novel');
+        //     res.status(200).json(comment);
+        // } 
+        // else if (type === 'COMIC')
+        //     {
+        //     const comment = await prisma.comments.findMany({
+        //         where: {
+        //             comicChapterId: chapterId
+        //         },
+        //         include: {
+        //             user: {
+        //                 select: {
+        //                     username: true,
+        //                     avatar: true
+
+        //                 }
+        //             }
+        //             ,
+        //             ...(userId &&
+        //             {
+        //                 Likes: {
+        //                     where: {
+        //                         userId: req.user?.id
+        //                     },
+        //                     select: {
+        //                         userId: true
+        //                     }
+        //                 }
+        //             }
+        //             ),
+        //             _count: {
+        //                 select: {
+        //                     Likes: true,
+        //                 }
+        //             }
+        //         }
+        //     });
+        //     console.log(comment, 'comment in comic');
+        //     res.status(200).json(comment);
+        // }
+        const comment = await prisma.comments.findMany({
+            where: {
+                ...(type === "NOVEL" ? { chapterId: chapterId } : { comicChapterId: chapterId }),
+            },
+            include: {
+                user: {
+                    select: {
+                        username: true,
+                        avatar: true
+
                     }
-                    ,
-                    ...(userId &&
-                    {
-                        Likes: {
-                            where: {
-                                userId: req.user?.id
-                            },
-                            select: {
-                                userId: true
-                            }
-                        }
-                    }
-                    ),
-                    _count: {
+                }
+                ,
+                ...(userId &&
+                {
+                    Likes: {
+                        where: {
+                            userId: req.user?.id
+                        },
                         select: {
-                            Likes: true,
+                            userId: true
                         }
                     }
                 }
-            });
-            console.log(comment, 'comment in novel');
-            res.status(200).json(comment);
-        } else if (type === 'COMIC'){
-            const comment = await prisma.comments.findMany({
-                where: {
-                    comicChapterId: chapterId
-                },
-                include: {
-                    user: {
-                        select: {
-                            username: true,
-                            avatar: true
-
-                        }
-                    }
-                    ,
-                    ...(userId &&
-                    {
-                        Likes: {
-                            where: {
-                                userId: req.user?.id
-                            },
-                            select: {
-                                userId: true
-                            }
-                        }
-                    }
-                    ),
-                    _count: {
-                        select: {
-                            Likes: true,
-                        }
+                ),
+                _count: {
+                    select: {
+                        Likes: true,
                     }
                 }
-            });
-            console.log(comment, 'comment in comic');
-            res.status(200).json(comment);
-        }
+            }
+        });
+        console.log(comment, 'comment in novel');
+        res.status(200).json(comment);
 
 
     } catch (error) {

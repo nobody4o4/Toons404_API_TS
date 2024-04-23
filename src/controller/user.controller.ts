@@ -224,15 +224,26 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
+    
     // Return limited user data and token as JSON response
     const limitedUserData = {
       username: user.username,
       email: user.email,
+      avatar: user.avatar,  
+      role: user.role,
+      id: user.id,
+      isSubscribed: await prisma.subscription.findFirst({
+        where: {
+          userId: user.id,
+        },
+      }),
+      token: token,
+      
     };
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
 
     // Return limited user data and token as JSON response
-    res.json({ user: user, token, Avatar: user });
+    res.json(limitedUserData);
 
   } catch (error) {
     // Handle errors gracefully
@@ -383,7 +394,19 @@ export const updateUserById = async (req: Request, res: Response) => {
         bio,
       },
     });
-    res.json(user);
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
+
+    // Return limited user data and token as JSON response
+    const limitedUserData = {
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      role: user.role,
+      id: user.id,
+      token: token,
+    };
+
+    res.json(limitedUserData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
