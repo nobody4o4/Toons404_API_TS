@@ -11,8 +11,10 @@ import commentRouter from './comment.route';
 import followRouter from './follow.route';
 import historyRouter from './history.route';
 import requestRouter from './request.route';
-import forumRouter from './forum.route';
+import clubRouter from './club.route';
 import postRouter from './post.route';
+import { subscriptionMiddleware } from '../middleware/auth.middleware';
+import replyRouter from './reply.route';
 
 const rootRouter = Router();
 
@@ -28,8 +30,9 @@ rootRouter.use('/comment', commentRouter)
 rootRouter.use('/follow', followRouter)
 rootRouter.use('/history', historyRouter)
 rootRouter.use('/request', requestRouter)
-rootRouter.use('/request', postRouter)
-rootRouter.use('/request', forumRouter)
+rootRouter.use('/post', postRouter)
+rootRouter.use('/reply', replyRouter)
+rootRouter.use('/club',subscriptionMiddleware, clubRouter)
 
 
 export default rootRouter;

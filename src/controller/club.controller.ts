@@ -2,36 +2,36 @@ import e, { Request, Response } from 'express';
 import { prisma } from '..';
 
 
-//create a new forum
-export const createForum = async (req: Request, res: Response) => {
+//create a new club
+export const createClub = async (req: Request, res: Response) => {
     const { title, description, authorId, coverImage } = req.body;
     try {
-        const forum = await prisma.forum.create({
-            data: {
+        const club = await prisma.forum.create({
+            data: { 
                 title,
                 coverImage,
                 description,
                 authorId,
             }
         });
-        res.json(forum);
+        res.json(club);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 }
 
-//get all forums 
-export const getForums = async (req: Request, res: Response) => {
+//get all Club 
+export const getClubs = async (req: Request, res: Response) => {
     try {
-        const forums = await prisma.forum.findMany();
-        res.json(forums);
+        const clubs = await prisma.forum.findMany();
+        res.json(clubs);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 }
 
-//get a forum by id
-export const getForumById = async (req: Request, res: Response) => {
+//get a Club by id
+export const getClubById = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
         const forum = await prisma.forum.findUnique({
@@ -45,12 +45,12 @@ export const getForumById = async (req: Request, res: Response) => {
     }
 }
 
-//update a forum by id
-export const updateForum = async (req: Request, res: Response) => {
+//update a Club by id
+export const updateClub = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { title, description, coverImage } = req.body;
     try {
-        const forum = await prisma.forum.update({
+        const club = await prisma.forum.update({
             where: {
                 id
             },
@@ -60,14 +60,14 @@ export const updateForum = async (req: Request, res: Response) => {
                 description
             }
         });
-        res.json(forum);
+        res.json(club);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 }
 
-//delete a forum by id
-export const deleteForum = async (req: Request, res: Response) => {
+//delete a club by id
+export const deleteClub = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
         await prisma.forum.delete({

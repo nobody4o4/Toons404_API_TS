@@ -5,12 +5,13 @@ import { prisma } from '..';
 // create new reply in post comment 
 export const createCommentReply = async (req: Request, res: Response): Promise<void> => {
     const userId = req?.user?.id;
-    const { content, postCommentId } = req.body;
+    const {commentId} = req.params;
+    const { content } = req.body;
     try {
-        const commentReply = await prisma.postCommentReply.create({
+        const commentReply = await prisma.reply.create({
             data: {
                 content,
-                postCommentId,
+                commentId,
                 userId
             }
         });
@@ -21,12 +22,12 @@ export const createCommentReply = async (req: Request, res: Response): Promise<v
 }
 
 //get all replies in post comment
-export const getCommentReplies = async (req: Request, res: Response): Promise<void> => {
-    const { postCommentId } = req.params;
+export const getReplies = async (req: Request, res: Response): Promise<void> => {
+    const { commentId } = req.params;
     try {
-        const commentReplies = await prisma.postCommentReply.findMany({
+        const commentReplies = await prisma.reply.findMany({
             where: {
-                postCommentId
+                commentId
             },
             select: {
                 id: true,
@@ -51,10 +52,10 @@ export const getCommentReplies = async (req: Request, res: Response): Promise<vo
 
 
 //delete reply in post comment
-export const deleteCommentReply = async (req: Request, res: Response): Promise<void> => {
+export const deleteReply = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     try {
-        const commentReply = await prisma.postCommentReply.delete({
+        const commentReply = await prisma.reply.delete({
             where: {
                 id
             }

@@ -65,6 +65,7 @@ export const getUserProfileByUsername = async (req: Request, res: Response) => {
 }
 
 export const getCurrentUserProfile = async (req: Request, res: Response) => {
+  const userId = req?.user?.id;
   try {
     const { username } = req.user;
     const user = await prisma.user.findUnique({
@@ -88,19 +89,40 @@ export const getCurrentUserProfile = async (req: Request, res: Response) => {
             id: true,
             title: true,
             coverImage: true,
+            type: true,
+            author:{
+              select:{
+                username: true,
+              }
+            },
+            ...(userId && {
+              Likes: {
+                where:{
+                userId: userId
+                }
+                ,select:{
+                  userId: true
+                }
+              },
+            }),
             genre: {
               select: {
-                name: true
+                name: true,
               }
             },
             subGenre: {
               select: {
-                name: true
+                name: true,
               }
             },
             series: {
               select: {
-                title: true
+                title: true,
+              }
+            },
+            _count: {
+              select: {
+                Likes: true,
               }
             }
           }

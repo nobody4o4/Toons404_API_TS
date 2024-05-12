@@ -68,8 +68,6 @@ export const createChapter = async (req: Request, res: Response): Promise<void> 
   console.log(title, content, bookId, type, 'chapter...');
   console.log(type, 'chapter...tyeppepepepepep');
 
-  
-
   try {
     if(type == 'COMIC'){
       const newChapter = await prisma.comicChapter.create({

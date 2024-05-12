@@ -12,7 +12,7 @@ const app: Express = express();
 const port: number = 3000;
 
 // app.use(cors({
-//   origin: ["http://localhost:4004","http://192.168.1.79:4004/","http://169.254.143.83:4004/"],
+//   origin: ["http://localhost:4004","http://192.168.1.94:4004/","http://169.254.143.83:4004/"],
 //   credentials: true
 // }));
 app.use(cors());

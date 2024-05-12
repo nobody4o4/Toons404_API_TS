@@ -11,32 +11,30 @@ datasource db {
 }
 
 model User {
-  id                 String             @id @default(uuid())
-  avatar             String?
-  firstName          String
-  lastName           String
-  bio                String?
-  username           String             @unique
-  email              String             @unique
-  phone              String?            @unique
-  password           String
-  role               Role               @default(USER)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  books              Book[]
-  Series             Series[]
-  subscriptions      Subscription[]
-  Likes              Likes[]
-  Comments           Comments[]
-  Posts              Post[]
-  PostComments       PostComment[]
-  PostLikes          PostLike[]
-  PostCommentReplies PostCommentReply[]
-  Followers          Follow[]           @relation("follower")
-  Followings         Follow[]           @relation("following")
-  Forum              Forum[]
-  History            History[]
-  AuthorRequest      AuthorRequest[]
+  id            String          @id @default(uuid())
+  avatar        String?
+  firstName     String
+  lastName      String
+  bio           String?
+  username      String          @unique
+  email         String          @unique
+  phone         String?         @unique
+  password      String
+  role          Role            @default(USER)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  books         Book[]
+  Series        Series[]
+  subscriptions Subscription[]
+  Likes         Likes[]
+  Comments      Comments[]
+  Posts         Post[]
+  Followers     Follow[]        @relation("follower")
+  Followings    Follow[]        @relation("following")
+  Forum         Forum[]
+  History       History[]
+  AuthorRequest AuthorRequest[]
+  Reply         Reply[]
 }
 
 model Genre {
@@ -178,11 +176,13 @@ model Likes {
   commentId      String?
   series         Series?       @relation(fields: [seriesId], references: [id])
   seriesId       String?
+  post           Post?         @relation(fields: [postId], references: [id])
+  postId         String?
+  reply          Reply?        @relation(fields: [replyId], references: [id])
+  replyId        String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  PostComment    PostComment?  @relation(fields: [postCommentId], references: [id])
-  postCommentId  String?
-  ComicChapter   ComicChapter? @relation(fields: [comicChapterId], references: [id])
+  comicChapter   ComicChapter? @relation(fields: [comicChapterId], references: [id])
   comicChapterId String?
 }
 
@@ -196,8 +196,11 @@ model Comments {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   Likes          Likes[]
-  ComicChapter   ComicChapter? @relation(fields: [comicChapterId], references: [id])
+  comicChapter   ComicChapter? @relation(fields: [comicChapterId], references: [id])
   comicChapterId String?
+  post           Post?         @relation(fields: [postId], references: [id])
+  postId         String?
+  Reply          Reply[]
 }
 
 model Follow {
@@ -232,51 +235,29 @@ model AuthorRequest {
 }
 
 model Post {
-  id           String        @id @default(uuid())
-  title        String
-  content      String
-  user         User          @relation(fields: [userId], references: [id])
-  userId       String
-  forum        Forum         @relation(fields: [forumId], references: [id])
-  forumId      String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  PostComments PostComment[]
-  PostLikes    PostLike[]
-}
-
-model PostComment {
-  id               String             @id @default(uuid())
-  user             User               @relation(fields: [userId], references: [id])
-  userId           String
-  post             Post               @relation(fields: [postId], references: [id])
-  postId           String
-  content          String
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  Likes            Likes[]
-  PostCommentReply PostCommentReply[]
-}
-
-model PostLike {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  id        String     @id @default(uuid())
+  title     String
+  content   String
+  user      User       @relation(fields: [userId], references: [id])
   userId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  postId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  forum     Forum?     @relation(fields: [forumId], references: [id])
+  forumId   String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Comments  Comments[]
+  Likes     Likes[]
 }
 
-model PostCommentReply {
-  id            String      @id @default(uuid())
-  user          User        @relation(fields: [userId], references: [id])
-  userId        String
-  postComment   PostComment @relation(fields: [postCommentId], references: [id])
-  postCommentId String
-  content       String
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+model Reply {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  comment   Comments? @relation(fields: [commentId], references: [id])
+  commentId String?
+  content   String
+  like      Likes[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 enum Role {

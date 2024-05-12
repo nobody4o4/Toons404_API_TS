@@ -10,7 +10,7 @@ export const addLike = async (req: Request, res: Response): Promise<void> => {
     console.log(type, likedItemId, userId, "type, likedItemId, userId")
 
     // Validate the request
-    if (!['book', 'chapter', 'comment','series', 'comicChapter'].includes(type)) {
+    if (!['book', 'chapter', 'comment','series', 'comicChapter', 'post'].includes(type)) {
       res.status(400).json({ error: 'Invalid request' });
       return;
     }
@@ -30,6 +30,7 @@ export const addLike = async (req: Request, res: Response): Promise<void> => {
         ...(type === 'comment' && { commentId: likedItemId }),
         ...(type === 'series' && { seriesId: likedItemId }),
         ...(type === 'comicChapter' && { comicChapterId: likedItemId }),
+        ...(type === "post" && { postId : likedItemId}),
       },
     });
 
@@ -46,7 +47,8 @@ export const addLike = async (req: Request, res: Response): Promise<void> => {
         ...(type === 'chapter' && { chapter: { connect: { id: likedItemId } } }),
         ...(type === 'comment' && { comment: { connect: { id: likedItemId } } }),
         ...(type === 'series' && { series: { connect: { id: likedItemId } } }),
-        ...(type === 'comicChapter' && { ComicChapter: { connect: { id: likedItemId } } }),
+        ...(type === 'comicChapter' && { comicChapter: { connect: { id: likedItemId } } }),
+        ...(type === "post" && { post:{connect : {id: likedItemId}}}),
       },
     });
 
@@ -65,7 +67,7 @@ export const removeLike = async (req: Request, res: Response): Promise<void> => 
     const { type, likedItemId } = req.body;
 
     // Validate the request
-    if (!['book', 'chapter', 'comment', 'series','comicChapter'].includes(type)) {
+    if (!['book', 'chapter', 'comment', 'series','comicChapter','post'].includes(type)) {
       res.status(400).json({ error: 'Invalid request' });
       return;
     }
@@ -84,7 +86,7 @@ export const removeLike = async (req: Request, res: Response): Promise<void> => 
         ...(type === 'comment' && { commentId: likedItemId }),
         ...(type === 'series' && { seriesId: likedItemId }),
         ...(type === 'comicChapter' && { comicChapterId: likedItemId }),
-
+        ...(type === "post" && { postId : likedItemId}),
       },
     });
 

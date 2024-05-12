@@ -72,4 +72,25 @@ const adminMiddleware = async (req: Request, res: Response, next: NextFunction) 
     next();
 }
 
-export { authMiddleware, adminMiddleware, getUserMiddleware };
+const subscriptionMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    console.log(user, "this is user");
+
+    const userId = user.id
+
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      userId: userId,
+      status: 'ACTIVE',
+    },
+  });
+
+  if(!subscription){
+    throw new Error('No active subscription found');
+  }
+
+    next();
+}
+
+
+export { authMiddleware, adminMiddleware, getUserMiddleware, subscriptionMiddleware };

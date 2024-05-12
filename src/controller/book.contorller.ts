@@ -12,7 +12,7 @@ export const createBook = async (req: Request, res: Response): Promise<void> => 
   console.log(title, description, series, genre, subGenre, 'book...');
 
   try {
-    const existingBook = await prisma.book.findFirst({
+    const existingBook = await prisma.book.findUnique({
       where: {
         title: title,
       },
@@ -72,6 +72,7 @@ export const bookCard = async (req: Request, res: Response): Promise<void> => {
         title: true,
         coverImage: true,
         type: true,
+        isPremium: true,
         author:{
           select:{
             username: true,
@@ -109,6 +110,7 @@ export const bookCard = async (req: Request, res: Response): Promise<void> => {
         }
       }
     })
+    console.log(bookCard, "book page details")
     res.status(200).json(bookCard)
   }
   catch (error) {
@@ -323,14 +325,22 @@ export const fullbookDetail = async (req: Request, res: Response): Promise<void>
             id: true
           }
         },
+        ComicChapter:{
+          select:{
+            id:true
+          }
+        },
         _count: {
           select: {
+           
+            ComicChapter:true,
             chapters: true
           }
         }
 
       }
     })
+
     console.log(book, "book page details")
     res.status(200).json(book)
     console.log(bookCard, "book page details")

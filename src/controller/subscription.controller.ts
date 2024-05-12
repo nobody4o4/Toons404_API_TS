@@ -122,7 +122,6 @@ export const getSubscriptionByUserId =  async  (req: Request, res:Response ) => 
       userId: userId,
       status: 'ACTIVE',
     },
-
   });
 
   if(!subscription){

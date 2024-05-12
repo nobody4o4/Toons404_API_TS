@@ -5,8 +5,8 @@ import { addComment, getComment, removeComment } from "../controller/comment.con
 
 const commentRouter: Router = Router();
 
-commentRouter.get("/get/:chapterId/:type", getUserMiddleware, getComment);
-commentRouter.post("/add/:chapterId", authMiddleware,addComment);
+commentRouter.get("/get/:itemId/:type", getUserMiddleware, getComment);
+commentRouter.post("/add/:commentedItemId", authMiddleware,addComment);
 commentRouter.post("/remove/:commentId", authMiddleware,removeComment);
 
 
