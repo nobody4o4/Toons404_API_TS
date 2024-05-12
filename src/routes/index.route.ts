@@ -15,6 +15,7 @@ import clubRouter from './club.route';
 import postRouter from './post.route';
 import { subscriptionMiddleware } from '../middleware/auth.middleware';
 import replyRouter from './reply.route';
+import planRouter from './plan.route';
 
 const rootRouter = Router();
 
@@ -32,7 +33,8 @@ rootRouter.use('/history', historyRouter)
 rootRouter.use('/request', requestRouter)
 rootRouter.use('/post', postRouter)
 rootRouter.use('/reply', replyRouter)
-rootRouter.use('/club',subscriptionMiddleware, clubRouter)
+rootRouter.use('/plan',planRouter)
+rootRouter.use('/club', clubRouter)
 
 
 export default rootRouter;

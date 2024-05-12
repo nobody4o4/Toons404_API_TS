@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "..";
 import { JWT_SECRET } from "../../secrets";
-import { isNull, isNullOrUndefined } from "util";
+
 
 
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
@@ -54,7 +54,6 @@ const getUserMiddleware = async (req: Request, res: Response, next: NextFunction
                 req.user = user;
             }
         }
-
         next();
     } catch (err) {
         next(err);

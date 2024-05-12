@@ -4,6 +4,7 @@ import rootRouter from "./routes/index.route";
 import errorHandler from "./middleware/errorHandler";
 import cors from "cors";
 import  errorMiddleware  from "./middleware/error.middleware";
+import { getUserMiddleware } from "./middleware/auth.middleware";
 
 
 export const prisma = new PrismaClient()
@@ -19,7 +20,7 @@ app.use(cors());
 http://localhost:3000/api/khalti/callback?pidx=z4cSF2RLNqE7nMc9fsCUMh&transaction_id=8GPLWvVMCQKtsiYXLv4ruH&tidx=8GPLWvVMCQKtsiYXLv4ruH&amount=1000&total_amount=1000&mobile=98XXXXX248&status=Completed&purchase_order_id=00a27811-bdb3-4825-ae0e-a9152f4f0827&purchase_order_name=Subscription%20Premium
 app.use(express.json());
 
-app.use("/api", rootRouter);
+app.use("/api",getUserMiddleware, rootRouter);
 
 app.use(errorHandler);
 

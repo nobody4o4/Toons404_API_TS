@@ -6,7 +6,7 @@ import { handleKhaltiCallback } from "../middleware/khalti.middleware";
 
 const subscriptionRouter: Router = Router();
 
-subscriptionRouter.post("/add", authMiddleware, createSubscription);
+subscriptionRouter.post("/add/:planId", authMiddleware, createSubscription);
 subscriptionRouter.get("/get", authMiddleware, getSubscriptionByUserId);
 subscriptionRouter.post("/callback",authMiddleware, handleKhaltiCallback, updateSubscriptionAfterPayment);
 

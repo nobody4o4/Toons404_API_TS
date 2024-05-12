@@ -21,3 +21,21 @@ export const getStats = async (req: Request, res: Response) => {
         console.log(err);
     }
     }
+
+
+//get user registed per month 
+export const getUserRegistedPerMonth = async (req: Request, res: Response) => {
+    try {
+        const userRegistedPerMonth = await prisma.user.groupBy({
+            by: ["createdAt"],
+            _count: {
+                email: true,
+            },
+        });
+        console.log(userRegistedPerMonth)
+        res.json(userRegistedPerMonth);
+    } catch (err) {
+        console.log(err);
+    }
+}
+

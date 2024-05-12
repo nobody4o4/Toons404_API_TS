@@ -10,7 +10,7 @@ export const addLike = async (req: Request, res: Response): Promise<void> => {
     console.log(type, likedItemId, userId, "type, likedItemId, userId")
 
     // Validate the request
-    if (!['book', 'chapter', 'comment','series', 'comicChapter', 'post'].includes(type)) {
+    if (!['book', 'chapter', 'comment','series', 'comicChapter', 'post','reply'].includes(type)) {
       res.status(400).json({ error: 'Invalid request' });
       return;
     }
@@ -31,6 +31,7 @@ export const addLike = async (req: Request, res: Response): Promise<void> => {
         ...(type === 'series' && { seriesId: likedItemId }),
         ...(type === 'comicChapter' && { comicChapterId: likedItemId }),
         ...(type === "post" && { postId : likedItemId}),
+        ...(type === "reply" && { replyId : likedItemId}),
       },
     });
 
@@ -49,6 +50,7 @@ export const addLike = async (req: Request, res: Response): Promise<void> => {
         ...(type === 'series' && { series: { connect: { id: likedItemId } } }),
         ...(type === 'comicChapter' && { comicChapter: { connect: { id: likedItemId } } }),
         ...(type === "post" && { post:{connect : {id: likedItemId}}}),
+        ...(type === "reply" && { reply:{connect : {id: likedItemId}}}),
       },
     });
 

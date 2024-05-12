@@ -632,3 +632,112 @@ export const deleteBookById = async (req: Request, res: Response): Promise<void>
   }
 };
 
+
+//search book by title
+export const searchBookByTitle = async (req: Request, res: Response): Promise<void> => {
+  const { title } = req.params;
+  const userId = req.user.id;
+  try {
+    const books = await prisma.book.findMany({
+      where: {
+        title: {
+          contains: title,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        coverImage: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        isPremium: true,
+        likes: true,
+        ...(userId && {
+          Likes: {
+            where:{
+            userId: userId
+            }
+            ,select:{
+              userId: true
+            }
+          },
+        }),
+        genre: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        subGenre: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        series: {
+          select: {
+            id: true,
+            title: true,
+            coverImage: true,
+            description: true,
+          }
+        },
+        author: {
+          select: {
+            username: true,
+            avatar: true,
+            bio: true,
+          }
+        },
+        chapters: {
+          select: {
+            id: true
+          }
+        },
+        ComicChapter:{
+          select:{
+            id:true
+          }
+        },
+        _count: {
+          select: {
+           
+            ComicChapter:true,
+            chapters: true
+          }
+        }
+
+      }
+    });
+
+    if (books.length === 0) {
+      // If no exact matches found, try a more flexible search
+      const flexibleBooks = await prisma.book.findMany({
+        where: {
+          title: {
+            contains: title.split(' ').join('|'),
+            mode: 'insensitive',
+          },
+        },
+      });
+
+      if (flexibleBooks.length === 0) {
+        res.status(404).json({ error: 'Books not found' });
+        return;
+      }
+
+      res.status(200).json(flexibleBooks);
+      return;
+    }
+
+    res.status(200).json(books);
+  } catch (error) {
+    console.error('Error fetching books by title:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+

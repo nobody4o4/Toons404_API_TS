@@ -24,6 +24,7 @@ export const createCommentReply = async (req: Request, res: Response): Promise<v
 //get all replies in post comment
 export const getReplies = async (req: Request, res: Response): Promise<void> => {
     const { commentId } = req.params;
+    const userId = req.user.id
     try {
         const commentReplies = await prisma.reply.findMany({
             where: {
@@ -41,7 +42,19 @@ export const getReplies = async (req: Request, res: Response): Promise<void> => 
                         username: true,
                         email: true,
                     }
-                }
+                },
+                ...(userId && {
+
+                    like: {
+                    where:{
+                    userId: userId
+                    }
+                    ,select:{
+                        userId: true
+                    }
+                    },
+                }),
+            
             }
         });
         res.status(200).json( commentReplies );

@@ -32,8 +32,11 @@ export const getSubscriptions = async (req: Request, res: Response) => {
 };
 
 export const createSubscription = async (req: Request, res: Response) => {
+  const {planId} = req.params;
+  console.log(req.params)
+  console.log(planId,"jsbjnbjx")
   try {
-    const planId = "b14b54ca-47a3-499a-84d4-a04d32a94ecf";
+
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) {
       throw new Error('Plan not found');
